@@ -20,15 +20,21 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 ### ⚠️ NodeJS  must be installed ⚠️
 
 * Install  
-`cd DCCExpress`  
-`DCCExpress> npm install`
+```bash 
+>cd DCCExpress
+DCCExpress> npm install
+```
 
 * Dev  
-`DCCExpress> npm run dev`
+```bash
+DCCExpress> npm run dev
+```
 
 * Build to Data  
-`DCCExpress> npm run build`  
-`DCCExpress> pio run -e ESP32 --target uploadfs`
+```bash
+DCCExpress> npm run build
+DCCExpress> pio run -e ESP32 --target uploadfs
+```
 
 * When compiling DCC-EX, the web server must be enabled in config.h using the HTTP preprocessor directive:  
 ```cpp
