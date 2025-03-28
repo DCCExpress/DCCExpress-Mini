@@ -12,9 +12,10 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 - 🚂 **EX-CSB1 ESP32 based command station**
 - 🌐 **Built-in web server** with Bootstrap UI optimized for mobile devices
 - 📡 **WebSocket support** for real-time control and feedback
-- 📁 **LittleFS storage** for persistent config, loco data, and file uploads
-- 🛠️ **Fully editable loco list** (name, address, speed, functions)
-- 🔧 **Function editor** with momentary toggles and customizable labels
+- ✏️ **Fully editable loco list** (image, name, address, speed, functions)
+- 🛠️ **Function editor** with momentary toggles and customizable labels
+- 🗃️ **LittleFS storage** for persistent config, loco data, and file uploads
+- 🗂️ **File manager** interface for maintaining and organizing files
 
 ## Building
 ### ⚠️ NodeJS  must be installed ⚠️
