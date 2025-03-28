@@ -1,3 +1,32 @@
+# DCC-EX ESP32 Fork
+### ⚠️Under development ⚠️  
+This project is a customized fork of the [DCC-EX CommandStation-EX](https://github.com/DCC-EX/CommandStation-EX) project.  
+The goal is to provide a standalone wireless DCC control system with a mobile-friendly user interface, file management, and real-time communication.
+
+Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
+
+---
+
+## 🚀 Features
+
+- 🚂 **EXCSB1 ESP32 based command station**
+- 🌐 **Built-in web server** with Bootstrap UI optimized for mobile devices
+- 📡 **WebSocket support** for real-time control and feedback
+- 📁 **LittleFS storage** for persistent config, loco data, and file uploads
+- 🛠️ **Fully editable loco list** (name, address, speed, functions)
+- 🔧 **Function editor** with momentary toggles and customizable labels
+
+---  
+
+![](web\images\control.jpg)
+
+![](web\images\locoeditor.jpg)
+
+![](web\images\filemanager.jpg)
+
+
+
+
 # What is DCC-EX?
 DCC-EX is a team of dedicated enthusiasts producing open source DCC & DC solutions for you to run your complete model railroad layout. Our easy to use, do-it-yourself, and free open source products run on off-the-shelf Arduino technology and are supported by numerous third party hardware and apps like JMRI, Engine Driver, wiThrottle, Rocrail and more. 
 
