@@ -7,14 +7,12 @@ AsyncWebServer httpServer(80);
 AsyncWebSocket ws("/ws");
 #include <ArduinoJson.h>
 
-
 void dccParseRaw(const String &raw)
 {
   Serial.println("RAW: " + raw);
   const char *cmd = raw.c_str();
   DCCEXParser::parseOne(&Serial, (byte *)cmd, NULL);
 }
-
 
 void sendFormattedInfo(String s)
 {
@@ -28,59 +26,14 @@ void sendFormattedInfo(String s)
   }
 }
 
-// void send2ToWebSocket(const FSH* format, va_list args) {
-//     char buffer[256];
-//     vsnprintf(buffer, sizeof(buffer), format, args);  // formázott stringet készít
-//     String msg(buffer);
-
-//     for (auto* client : ws.getClients()) {
-//       if (client && client->status() == WS_CONNECTED) {
-//         String json = "{\"type\":\"rawInfo\",\"data\":{\"raw\":\"" + msg + "\"}}";
-//         client->text(json);
-//       }
-//     }
-//   }
-
-// String wsLineBuffer; // Globális vagy statikus helyen tárold!
-
-// void send2ToWebSocket(const FSH *format, va_list args)
-// {
-
-//   char buffer[128];
-//   vsnprintf(buffer, sizeof(buffer), format, args);
-
-//   for (size_t i = 0; i < strlen(buffer); i++)
-//   {
-//     char c = buffer[i];
-//     if (c != '\n' && c != 0)
-//     {
-//       wsLineBuffer += c;
-//     }
-
-//     if (c == '\n')
-//     {
-//       // ha sortörés jött → küldjük a teljes sort
-//       for (auto *client : ws.getClients())
-//       {
-//         if (client && client->status() == WS_CONNECTED)
-//         {
-//           String json = "{\"type\":\"rawInfo\",\"data\":{\"raw\":\"" + wsLineBuffer + "\"}}";
-//           client->text(json);
-//         }
-//       }
-//       wsLineBuffer = ""; // töröljük a buffert
-//     }
-//   }
-// }
-
 void setupHTTPServer()
 {
   if (!LittleFS.begin(true))
   {
-    Serial.println("LittleFS mount hiba!");
+    Serial.println("LittleFS mount error!");
     return;
   }
-  Serial.println("LittleFS elindítva!");
+  Serial.println("LittleFS started!");
 
    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 
@@ -154,12 +107,12 @@ void setupHTTPServer()
                 AwsEventType type, void *arg, uint8_t *data, size_t len)
              {
 if (type == WS_EVT_CONNECT) {
-Serial.println("WebSocket kapcsolat létrejött");
+Serial.println("WebSocket connect");
 } else if (type == WS_EVT_DISCONNECT) {
-Serial.println("WebSocket kapcsolat bontva");
+Serial.println("WebSocket disconnect");
 } else if (type == WS_EVT_DATA) {
 String msg = String((char*)data).substring(0, len);
-Serial.println("WebSocket üzenet: " + msg);
+Serial.println("WebSocket msg: " + msg);
 
     JsonDocument doc;
 DeserializationError error = deserializeJson(doc, msg);
@@ -171,8 +124,8 @@ return;
 String type = doc["type"].as<String>();
 if (type == "dccexraw") {
 String raw = doc["data"]["raw"].as<String>();
-Serial.println("➡️ RAW DCCEX: " + raw);
-//dccParseRaw(raw);
+Serial.println("DCCEX RAW: " + raw);
+
 
 dccParseRaw(raw);
 
@@ -184,5 +137,5 @@ client->text("{\"type\":\"error\",\"data\":\"unknown_command\"}");
 
   httpServer.addHandler(&ws);
   httpServer.begin();
-  Serial.println("🌍 Webszerver elindítva!");
+  Serial.println("🌍 Webserver started!");
 }

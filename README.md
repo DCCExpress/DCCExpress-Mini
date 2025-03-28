@@ -34,7 +34,8 @@ CommandStation-EX\DCCExpress> npm run dev
 * Build to Data  
 ```bash
 CommandStation-EX\DCCExpress> npm run build
-CommandStation-EX\DCCExpress> pio run -e ESP32 --target uploadfs
+CommandStation-EX\DCCExpress> cd ..
+CommandStation-EX> pio run -e ESP32 --target uploadfs
 ```
 
 * When compiling DCC-EX, the web server must be enabled in config.h using the HTTP preprocessor directive:  
