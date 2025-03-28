@@ -18,11 +18,11 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 
 ---  
 
-![](web\images\control.jpg)
+![](web/images/control.jpg)
 
-![](web\images\locoeditor.jpg)
+![](web/images/locoeditor.jpg)
 
-![](web\images\filemanager.jpg)
+![](web/images/filemanager.jpg)
 
 
 
