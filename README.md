@@ -30,7 +30,11 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 `DCCExpress> npm run build`  
 `DCCExpress> pio run -e ESP32 --target uploadfs`
 
- 
+* When compiling DCC-EX, the web server must be enabled in config.h using the HTTP preprocessor directive:  
+```cpp
+#define HTTP
+```
+
 ## 🖼️ Images
 ![](web/images/control.jpg)
 
