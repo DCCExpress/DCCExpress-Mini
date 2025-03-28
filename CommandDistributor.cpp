@@ -31,6 +31,7 @@
 #include "DCC.h"
 #include "TrackManager.h"
 #include "StringFormatter.h"
+#include "HTTPServer.h"
 
 // variables to hold clock time
 int16_t lastclocktime;
@@ -116,7 +117,13 @@ void CommandDistributor::broadcastToClients(clientType type) {
   (void)rememberClient; // shut up compiler warning
 
   // Broadcast to Serials
-  if (type==COMMAND_TYPE) SerialManager::broadcast(broadcastBufferWriter->getString());
+  if (type==COMMAND_TYPE) {
+    // !MOD START
+    String buff = broadcastBufferWriter->getString();
+    SerialManager::broadcast(broadcastBufferWriter->getString());
+    sendFormattedInfo(buff);
+    // !MOD END
+  } 
 
 #ifdef CD_HANDLE_RING
   // If we are broadcasting from a wifi/eth process we need to complete its output

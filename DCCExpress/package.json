@@ -1,0 +1,20 @@
+{
+  "name": "dccexpress",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "esbuild src/app.ts --bundle --outfile=./dist/app.js --format=iife --watch",
+    "build": "esbuild src/app.ts --bundle --outfile=./dist/app.js --format=iife",
+    "build:data": "esbuild src/app.ts --bundle --outfile=../data/app.js --format=iife"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/typescript": "^2.0.0",
+    "bootstrap": "^5.3.3",
+    "esbuild": "^0.25.1",
+    "typescript": "^5.8.2"
+  }
+}

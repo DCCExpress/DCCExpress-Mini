@@ -16,14 +16,14 @@
 // If config.h is not found, config.example.h will be used with all defaults.
 ////////////////////////////////////////////////////////////////////////////////////
 
-#if __has_include ( "config.h")
-  #include "config.h"
-  #ifndef MOTOR_SHIELD_TYPE
-  #error Your config.h must include a MOTOR_SHIELD_TYPE definition. If you see this warning in spite not having a config.h, you have a buggy preprocessor and must copy config.example.h to config.h
-  #endif
+#if __has_include("config.h")
+#include "config.h"
+#ifndef MOTOR_SHIELD_TYPE
+#error Your config.h must include a MOTOR_SHIELD_TYPE definition. If you see this warning in spite not having a config.h, you have a buggy preprocessor and must copy config.example.h to config.h
+#endif
 #else
-  #warning config.h not found. Using defaults from config.example.h
-  #include "config.example.h"
+#warning config.h not found. Using defaults from config.example.h
+#include "config.example.h"
 #endif
 
 /*
@@ -69,6 +69,10 @@
 // remember trailing '\0', sizeof("") == 1.
 #define PASSWDCHECK(S) static_assert(sizeof(S) == 1 || sizeof(S) > 8, "Password shorter than 8 chars")
 
+#ifdef HTTP
+#include "HTTPServer.h"
+#endif
+
 void setup()
 {
   // The main sketch has responsibilities during setup()
@@ -85,7 +89,7 @@ void setup()
   delay(STARTUP_DELAY);
 #endif
 
-// Initialise HAL layer before reading EEprom or setting up MotorDrivers 
+  // Initialise HAL layer before reading EEprom or setting up MotorDrivers
   IODevice::begin();
 
   // As the setup of a motor shield may require a read of the current sense input from the ADC,
@@ -94,11 +98,10 @@ void setup()
   // Set up MotorDrivers early to initialize all pins
   TrackManager::Setup(MOTOR_SHIELD_TYPE);
 
-  DISPLAY_START (
-    // This block is still executed for DIAGS if display not in use
-    LCD(0,F("DCC-EX v" VERSION));
-    LCD(1,F("Lic GPLv3"));
-  );
+  DISPLAY_START(
+      // This block is still executed for DIAGS if display not in use
+      LCD(0, F("DCC-EX v" VERSION));
+      LCD(1, F("Lic GPLv3")););
 
   // Responsibility 2: Start all the communications before the DCC engine
   // Start the WiFi interface on a MEGA, Uno cannot currently handle WiFi
@@ -117,28 +120,32 @@ void setup()
 #if ETHERNET_ON
   EthernetInterface::setup();
 #endif // ETHERNET_ON
-  
+
   // Responsibility 3: Start the DCC engine.
   DCC::begin();
 
   // Start RMFT aka EX-RAIL (ignored if no automnation)
   RMFT::begin();
 
+// Invoke any DCC++EX commands in the form "SETUP("xxxx");"" found in optional file mySetup.h.
+//  This can be used to create turnouts, outputs, sensors etc. through the normal text commands.
+#if __has_include("mySetup.h")
+#define SETUP(cmd) DCCEXParser::parse(F(cmd))
+#include "mySetup.h"
+#undef SETUP
+#endif
 
-  // Invoke any DCC++EX commands in the form "SETUP("xxxx");"" found in optional file mySetup.h.
-  //  This can be used to create turnouts, outputs, sensors etc. through the normal text commands.
-  #if __has_include ( "mySetup.h")
-    #define SETUP(cmd) DCCEXParser::parse(F(cmd))
-    #include "mySetup.h"
-    #undef SETUP
-  #endif
-
-  #if defined(LCN_SERIAL)
+#if defined(LCN_SERIAL)
   LCN_SERIAL.begin(115200);
   LCN::init(LCN_SERIAL);
-  #endif
+#endif
   LCD(3, F("Ready"));
   CommandDistributor::broadcastPower();
+
+#ifdef HTTP
+  LCD(4, F("HTTP"));
+  setupHTTPServer();
+#endif
 }
 
 /**************** for future reference
@@ -165,30 +172,30 @@ void loop()
   // Responsibility 1: Handle DCC background processes
   //                   (loco reminders and power checks)
   DCC::loop();
- 
+
   // Responsibility 2: handle any incoming commands on USB connection
   SerialManager::loop();
- 
+
   // Responsibility 3: Optionally handle any incoming WiFi traffic
 #ifndef ARDUINO_ARCH_ESP32
 #if WIFI_ON
   WifiInterface::loop();
- 
-#endif //WIFI_ON
-#else  //ARDUINO_ARCH_ESP32
+
+#endif // WIFI_ON
+#else  // ARDUINO_ARCH_ESP32
 #ifndef WIFI_TASK_ON_CORE0
   WifiESP::loop();
 #endif
-#endif //ARDUINO_ARCH_ESP32
+#endif // ARDUINO_ARCH_ESP32
 #if ETHERNET_ON
   EthernetInterface::loop();
 #endif
 
-  RMFT::loop();  // ignored if no automation
+  RMFT::loop(); // ignored if no automation
 
-  #if defined(LCN_SERIAL)
+#if defined(LCN_SERIAL)
   LCN::loop();
-  #endif
+#endif
 
   // Display refresh
   DisplayInterface::loop();
@@ -202,8 +209,13 @@ void loop()
   static int ramLowWatermark = __INT_MAX__; // replaced on first loop
 
   int freeNow = DCCTimer::getMinimumFreeMemory();
-  if (freeNow < ramLowWatermark) {
+  if (freeNow < ramLowWatermark)
+  {
     ramLowWatermark = freeNow;
-    LCD(3,F("Free RAM=%5db"), ramLowWatermark);
+    LCD(3, F("Free RAM=%5db"), ramLowWatermark);
   }
+
+#ifdef HTTP
+  ws.cleanupClients();
+#endif
 }
