@@ -1,5 +1,5 @@
-# DCC-EX ESP32 Fork
-### ⚠️Under development ⚠️  
+# DCCExpress-Mini a DCC-EX ESP32 Fork
+### ⚠️ Under development ⚠️  
 This project is a customized fork of the [DCC-EX CommandStation-EX](https://github.com/DCC-EX/CommandStation-EX) project.  
 The goal is to provide a standalone wireless DCC control system with a mobile-friendly user interface, file management, and real-time communication.
 
@@ -20,14 +20,15 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 ### ⚠️ NodeJS  must be installed ⚠️
 
 * Install  
-`npm install`
+`cd DCCExpress`  
+`DCCExpress> npm install`
 
 * Dev  
-`npm run dev`
+`DCCExpress> npm run dev`
 
 * Build to Data  
-`npm run build`  
-`pio run -e ESP32 --target uploadfs`
+`DCCExpress> npm run build`  
+`DCCExpress> pio run -e ESP32 --target uploadfs`
 
  
 ## 🖼️ Images
