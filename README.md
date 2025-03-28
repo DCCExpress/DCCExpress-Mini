@@ -21,19 +21,19 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 
 * Install  
 ```bash 
->cd DCCExpress
-DCCExpress> npm install
+CommandStation-EX> cd DCCExpress
+CommandStation-EX\DCCExpress> npm install
 ```
 
 * Dev  
 ```bash
-DCCExpress> npm run dev
+CommandStation-EX\DCCExpress> npm run dev
 ```
 
 * Build to Data  
 ```bash
-DCCExpress> npm run build
-DCCExpress> pio run -e ESP32 --target uploadfs
+CommandStation-EX\DCCExpress> npm run build
+CommandStation-EX\DCCExpress> pio run -e ESP32 --target uploadfs
 ```
 
 * When compiling DCC-EX, the web server must be enabled in config.h using the HTTP preprocessor directive:  
