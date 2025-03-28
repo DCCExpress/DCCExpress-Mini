@@ -9,7 +9,7 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 
 ## 🚀 Features
 
-- 🚂 **EXCSB1 ESP32 based command station**
+- 🚂 **EX-CSB1 ESP32 based command station**
 - 🌐 **Built-in web server** with Bootstrap UI optimized for mobile devices
 - 📡 **WebSocket support** for real-time control and feedback
 - 📁 **LittleFS storage** for persistent config, loco data, and file uploads
@@ -17,7 +17,7 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 - 🔧 **Function editor** with momentary toggles and customizable labels
 
 ## Building
-### ⚠️NodeJS  must be installed
+### ⚠️ NodeJS  must be installed ⚠️
 
 * Install  
 `npm install`
