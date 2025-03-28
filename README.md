@@ -16,8 +16,21 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 - 🛠️ **Fully editable loco list** (name, address, speed, functions)
 - 🔧 **Function editor** with momentary toggles and customizable labels
 
----  
+## Building
+### ⚠️NodeJS  must be installed
 
+* Install  
+`npm install`
+
+* Dev  
+`npm run dev`
+
+* Build to Data  
+`npm run build`  
+`pio run -e ESP32 --target uploadfs`
+
+ 
+## 🖼️ Images
 ![](web/images/control.jpg)
 
 ![](web/images/locoeditor.jpg)
