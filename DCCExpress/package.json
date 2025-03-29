@@ -6,8 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "esbuild src/app.ts --bundle --outfile=./dist/app.js --format=iife --watch",
-    "build": "esbuild src/app.ts --bundle --outfile=./dist/app.js --format=iife",
-    "build:data": "esbuild src/app.ts --bundle --outfile=../data/app.js --format=iife"
+    "build": "esbuild src/app.ts --bundle --outfile=../DCCEx/data/app.js --format=iife --minify"
   },
   "author": "",
   "license": "ISC",
