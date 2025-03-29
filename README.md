@@ -19,6 +19,10 @@ Other project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 - 🗂️ **File manager** interface for maintaining and organizing files
 
 ## Building
+
+The EX_CommandStation project should be compiled the same way as the original.
+Make sure the HTTP directive is defined in your config.h to enable the web server.
+
 ### ⚠️ NodeJS  must be installed ⚠️
 
 * Install  
