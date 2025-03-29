@@ -68,7 +68,7 @@ DCCExpress> cd ..
 > pio run -e ESP32 --target uploadfs
 ```
 
-* Upload to EXCSB1
+* Or Build + Upload to EXCSB1
 ```bash
 DCCExpress> npm run upload
 ```
