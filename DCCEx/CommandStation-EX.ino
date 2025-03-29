@@ -70,14 +70,13 @@
 #define PASSWDCHECK(S) static_assert(sizeof(S) == 1 || sizeof(S) > 8, "Password shorter than 8 chars")
 
 #ifdef HTTP
-#include "HTTPServer.h"
+  #include "HTTPServer.h"
+  #include "HTTPSerialWrapper.h"
+  extern AsyncWebSocket ws;
+  HTTPSerialWrapper HTTPSerial(&Serial, &ws);
 #endif
 
 
-#include "HTTPSerialWrapper.h"
-
-extern AsyncWebSocket ws;
-HTTPSerialWrapper HTTPSerial(&Serial, &ws);
 
 void setup()
 {

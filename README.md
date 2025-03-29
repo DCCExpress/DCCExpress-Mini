@@ -6,7 +6,7 @@ The goal is to provide a standalone wireless DCC control system with a mobile-fr
 
 Related project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 
----
+
 
 ## 🚀 Features
 
@@ -18,7 +18,32 @@ Related project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 - 🗃️ **LittleFS storage** for persistent config, loco data, and file uploads
 - 🗂️ **File manager** interface for maintaining and organizing files
 
-## Building
+
+## ✅ What you need to do
+
+1. **Configure your hardware and network settings**  
+   Open the `config.h` file and adjust it according to your setup (e.g. connected devices, Wi-Fi credentials).  
+   Don’t forget to add the following directive to enable the web server:
+
+   ```cpp
+   #define HTTP
+   ```
+
+2. **Compile and upload the firmware**  
+   Use PlatformIO or the command line to build and flash the firmware to your ESP32 device.
+
+3. **Upload the web interface (data folder)**  
+   Upload the contents of the `data/` folder using:
+
+   ```bash
+   pio run -e ESP32 --target uploadfs
+   ```
+
+   Or use the **"Upload Filesystem Image"** option from the PlatformIO menu.
+
+
+
+## Web Interface & Client-Side Development
 
 The EX-CommandStation project should be compiled the same way as the original.
 Make sure the HTTP directive is defined in your config.h to enable the web server.
@@ -63,7 +88,7 @@ DCCExpress> npm run upload
    - Replaced `USB_SERIAL` with a `HTTPSerialWrapper` class  
    - This wrapper forwards all serial output to WebSocket clients  
    - Useful for debugging or monitoring system messages over the network
-   
+
 ## 🖼️ Images
 ![](web/images/control.jpg)
 
