@@ -73,10 +73,6 @@ DCCExpress> cd ..
 DCCExpress> npm run upload
 ```
 
-* When compiling DCC-EX, the web server must be enabled in config.h using the HTTP preprocessor directive:  
-```cpp
-#define HTTP
-```
 ## 🛠️ Changes in This Fork
 
 1. **WebServer and WebSocket implementation**  
