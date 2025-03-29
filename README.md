@@ -86,7 +86,7 @@ DCCExpress> npm run upload
 
 2. **Serial output redirection (USB_SERIAL)**  
    - Replaced `USB_SERIAL` with a `HTTPSerialWrapper` class  
-   - This wrapper forwards all serial output to WebSocket clients  
+   - This wrapper forwards all serial output to both the original stream and all connected WebSocket clients.
    - Useful for debugging or monitoring system messages over the network
 
 ## 🖼️ Images
