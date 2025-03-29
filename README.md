@@ -39,15 +39,31 @@ DCCExpress> npm run dev
 * Build to Data  
 ```bash
 DCCExpress> npm run build
-DCCExpress> cd ../DCCEx
-DCCEx> pio run -e ESP32 --target uploadfs
+DCCExpress> cd ..
+> pio run -e ESP32 --target uploadfs
+```
+
+* Upload to EXCSB1
+```bash
+DCCExpress> npm run upload
 ```
 
 * When compiling DCC-EX, the web server must be enabled in config.h using the HTTP preprocessor directive:  
 ```cpp
 #define HTTP
 ```
+## 🛠️ Changes in This Fork
 
+1. **Web server and WebSocket implementation**  
+   - Added an embedded HTTP server with LittleFS/SD card file hosting  
+   - Added WebSocket support via `AsyncWebSocket` for real-time communication with clients  
+   - UI pages (e.g., loco control, file manager) are now loaded from the device
+
+2. **Serial output redirection (USB_SERIAL)**  
+   - Replaced `USB_SERIAL` with a `HTTPSerialWrapper` class  
+   - This wrapper forwards all serial output to WebSocket clients  
+   - Useful for debugging or monitoring system messages over the network
+   
 ## 🖼️ Images
 ![](web/images/control.jpg)
 
