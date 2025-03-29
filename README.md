@@ -79,7 +79,7 @@ DCCExpress> npm run upload
 ```
 ## 🛠️ Changes in This Fork
 
-1. **Web server and WebSocket implementation**  
+1. **WebServer and WebSocket implementation**  
    - Added an embedded HTTP server with LittleFS/SD card file hosting  
    - Added WebSocket support via `AsyncWebSocket` for real-time communication with clients  
    - UI pages (e.g., loco control, file manager) are now loaded from the device
