@@ -73,6 +73,12 @@
 #include "HTTPServer.h"
 #endif
 
+
+#include "HTTPSerialWrapper.h"
+
+extern AsyncWebSocket ws;
+HTTPSerialWrapper HTTPSerial(&Serial, &ws);
+
 void setup()
 {
   // The main sketch has responsibilities during setup()

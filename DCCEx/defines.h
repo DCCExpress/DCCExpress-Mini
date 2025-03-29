@@ -33,6 +33,7 @@
   #else
     #include "config.example.h"
   #endif
+
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -41,7 +42,12 @@
 // so define HAS_ENOUGH_MEMORY until proved otherwise.
 #define HAS_ENOUGH_MEMORY
 #undef USB_SERIAL     // Teensy has this defined by default...
-#define USB_SERIAL Serial
+//#define USB_SERIAL Serial
+// !MOD
+
+#include "HTTPSerialWrapper.h"
+extern HTTPSerialWrapper HTTPSerial;
+#define USB_SERIAL HTTPSerial
 
 // Include extended addresses unless specifically excluded
 #define I2C_EXTENDED_ADDRESS

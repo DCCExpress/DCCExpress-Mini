@@ -119,9 +119,9 @@ void CommandDistributor::broadcastToClients(clientType type) {
   // Broadcast to Serials
   if (type==COMMAND_TYPE) {
     // !MOD START
-    String buff = broadcastBufferWriter->getString();
+    //String buff = broadcastBufferWriter->getString();
     SerialManager::broadcast(broadcastBufferWriter->getString());
-    sendFormattedInfo(buff);
+    //sendFormattedInfo(buff);
     // !MOD END
   } 
 
