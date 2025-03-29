@@ -39,8 +39,10 @@ Related project: [DCCExpress](https://github.com/jungervin/DCCExpress)
    > pio run -e ESP32 --target uploadfs
    ```
 
-   Or use the **"Upload Filesystem Image"** option from the PlatformIO menu.
-
+   Or use the **"Upload Filesystem Image"** option from the PlatformIO menu.  
+    ```
+    ⚠️ Make sure to run these commands from the directory where your `platformio.ini` file is located.
+    ```
 
 
 ## Web Interface & Client-Side Development
