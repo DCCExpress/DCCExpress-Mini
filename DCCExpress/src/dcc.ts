@@ -50,6 +50,7 @@ export enum ApiCommands {
     dccRaw = "dccRaw",
     dccexraw = "dccexraw",
     rawInfo = "rawInfo",
+    ack = "ack"
 
 }
 

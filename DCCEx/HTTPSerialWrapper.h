@@ -17,12 +17,13 @@ public:
 
   void begin(unsigned long baud = 115200); // csak proxy
 
-   // Operator overload to allow usage like: while (!USB_SERIAL)
+   
   operator bool() const;
 
 
 private:
   Stream* _base;
   AsyncWebSocket* _ws;
-  String _buffer; // sorok gyűjtéséhez
+  String _buffer; 
+  String escapeJson(const String& input);  
 };

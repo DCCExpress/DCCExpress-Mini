@@ -28,6 +28,9 @@ export class App {
             this.cp.init()
         }
 
+        wsClient.onClosed = () => {
+            //alert("closed")
+        }
 
         wsClient.onMessage = (msg: iData) => {
             if (msg.type == ApiCommands.rawInfo) {

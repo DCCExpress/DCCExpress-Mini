@@ -3,6 +3,10 @@ import { ApiCommands, DccDirections, FunctionButton, iData, iLocomotive, iPowerI
 import { iDccRaw, wsClient } from "./ws";
 
 
+enum Colors {
+    secondary = "#222222"
+}
+
 export class LocoPanel extends HTMLElement {
     locomotives: iLocomotive[] = [];
     locoImage: HTMLImageElement;
@@ -17,19 +21,21 @@ export class LocoPanel extends HTMLElement {
     buttons: { [fn: number]: FunctionButton } = {};
     fnButtons: HTMLDivElement;
     modal: HTMLDivElement;
-    locoInfoElement: HTMLElement;
+    locoInfoSpeedElement: HTMLElement;
     btnSpeed5: HTMLButtonElement;
-    btnEmergency: any;
+    btnEmergency: HTMLButtonElement;
     locoName: HTMLDivElement;
     locoModeInfoElement: HTMLElement;
     _data: string = "";
-    powerInfo: iPowerInfo = {current: 0, emergencyStop: false, info: 0, programmingModeActive: false, shortCircuit: false, trackVoltageOn: false}
+    //powerInfo: iPowerInfo = {current: 0, emergencyStop: false, info: 0, programmingModeActive: false, shortCircuit: false, trackVoltageOn: false}
     btnPower: HTMLButtonElement;
-
-
+    locoInfoPowerElement: HTMLElement;
+    
+    
 
     constructor() {
         super()
+
         const shadow = this.attachShadow({ mode: "open" });
 
         shadow.innerHTML = `
@@ -301,8 +307,9 @@ export class LocoPanel extends HTMLElement {
                     <div id="infoRight">INFO R</div>
                 </div>
 
-                <div id="locoInfo">
-                    10
+                <div id="locoInfo" style="display: flex">
+                    <div id="locoInfoSpeed">10</div>
+                    <div id="locoInfoPower" style="color: #555555; font-size: 0.6em;display: flex; flex-direction: column; justify-content: flex-end; ">10</div>
                 </div>
         
 
@@ -361,7 +368,8 @@ export class LocoPanel extends HTMLElement {
 
         this.locoImage = shadow.getElementById("locoImage") as HTMLImageElement
         this.locoName = shadow.getElementById("locoName") as HTMLDivElement
-        this.locoInfoElement = shadow.getElementById("locoInfo") as HTMLElement
+        this.locoInfoSpeedElement = shadow.getElementById("locoInfoSpeed") as HTMLElement
+        this.locoInfoPowerElement = shadow.getElementById("locoInfoPower") as HTMLElement
         this.locoModeInfoElement = shadow.getElementById("locoModeInfo") as HTMLElement
         this.locoImage.addEventListener("click", () => this.openLocoModal());
         shadow.getElementById("closeModal")?.addEventListener("click", () => this.closeModal());
@@ -637,10 +645,10 @@ export class LocoPanel extends HTMLElement {
         this.renderLocoFunctions()
     }
 
-    getSpeedPercentage(perc: number, maxSpeed: number = 127): number {
+    getSpeedPercentage(perc: number, maxSpeed: number = 126): number {
         return Math.round((maxSpeed * (perc / 100.0)));
     }
-    getClosestSpeedThreshold(speed: number, maxSpeed: number = 127): number {
+    getClosestSpeedThreshold(speed: number, maxSpeed: number = 126): number {
         if (speed == 0) {
             return 0;
         }
@@ -691,7 +699,7 @@ export class LocoPanel extends HTMLElement {
             this.btnSpeed80.style.backgroundColor = speed == 80 ? 'lime' : 'gray'
             this.btnSpeed100.style.backgroundColor = speed == 100 ? 'lime' : 'gray'
 
-            this.locoInfoElement.innerHTML = this.currentLoco.speed.toString()
+            this.locoInfoSpeedElement.innerHTML = this.currentLoco.speed.toString()
 
             for (var i = 0; i <= 28; i++) {
                 var on = ((this.currentLoco.functionMap >> i) & 1) == 1;
@@ -709,7 +717,7 @@ export class LocoPanel extends HTMLElement {
 
 
         } else {
-            this.locoInfoElement.innerHTML = "Unknown Loco"
+            this.locoInfoSpeedElement.innerHTML = "Unknown Loco"
         }
 
 
@@ -733,26 +741,16 @@ export class LocoPanel extends HTMLElement {
                     this._data += c;
                 }
             }
-    
-
         }
-
-        // if (data) {
-        //     const loco = this.locomotives.find(l => l.address == data.address)
-        //     if (loco) {
-        //         loco.speed = data.speed;
-        //         loco.direction = data.direction
-        //         loco.functionMap = data.funcMap
-
-
-
-        //         if (this.currentLoco && this.currentLoco.address == loco.address) {
-        //             this.updateUI()
-        //         }
-        //     }
-        // } else {
-        //     console.log("controlPanel.processMessage:  data undefined",)
-        // }
+        if(msg.type == ApiCommands.ack) {
+            console.log(msg.data)
+            switch(msg.data) {
+                case '<!>':
+                    this.powerInfo.emergencyStop = true;
+                    this.powerInfo = this.powerInfo
+                break;
+            }
+        }
     }
 
     parse(data: string) {
@@ -761,35 +759,40 @@ export class LocoPanel extends HTMLElement {
             return
         }
 
-        if (data.startsWith('p1')) {
-            // const params = data.split(" ");
-            // this.powerInfo.info = 0b00000001
-            // if (params[1] == 'MAIN' || params[1] == 'A') {
-            //     //    if (!this.powerInfo.trackVoltageOn)
-            //     {
-            //         this.powerInfo.trackVoltageOn = true
-            //         broadcastAll({ type: ApiCommands.powerInfo, data: this.powerInfo } as iData)
-            //     }
-            // } else if (params[1] == 'PROG' || params[1] == 'B') {
-            //     this.powerInfo.programmingModeActive = true;
-            // }
+        if(data.startsWith('c CurrentMAIN')) {
+            const params = data.split(" ");
+            
+            this.powerInfo.current = parseInt(params[2])
+            this.locoInfoPowerElement.innerHTML = this.powerInfo.current.toString()
+            
+        }
+        else if (data.startsWith('p1')) {
+            const params = data.split(" ");
+            this.powerInfo.info = 0b00000001
+            if (params[1] == 'MAIN' || params[1] == 'A') {
+                {
+                    this.powerInfo.trackVoltageOn = true
+                }
+            } else if (params[1] == 'PROG' || params[1] == 'B') {
+                this.powerInfo.programmingModeActive = true;
+            }
+            this.powerInfo = this.powerInfo
         }
         else if (data.startsWith('p0')) {
-            // const params = data.split(" ");
-            // this.powerInfo.info = 0b00000000
-            // if (params.length == 2) {
-            //     if (params[1] == 'MAIN' || params[1] == 'A') {
-            //         this.powerInfo.trackVoltageOn = false
-            //     } else if (params[1] == 'PROG' || params[1] == 'B') {
-            //         this.powerInfo.programmingModeActive = false;
-            //     }
-            // } else {
-            //     this.powerInfo.trackVoltageOn = false
-            //     this.powerInfo.programmingModeActive = false;
-            // }
+            const params = data.split(" ");
+            this.powerInfo.info = 0b00000000
+            if (params.length == 2) {
+                if (params[1] == 'MAIN' || params[1] == 'A') {
+                    this.powerInfo.trackVoltageOn = false
+                } else if (params[1] == 'PROG' || params[1] == 'B') {
+                    this.powerInfo.programmingModeActive = false;
+                }
+                this.powerInfo = this.powerInfo
+            } else {
+                this.powerInfo.trackVoltageOn = false
+                this.powerInfo.programmingModeActive = false;
+            }
 
-            // log("DCCEx PowerInfo: ", this.powerInfo)
-            // broadcastAll({ type: ApiCommands.powerInfo, data: this.powerInfo } as iData)
         }
         else if (data.startsWith("Q ")) {
             // const params = data.split(" ");
@@ -829,10 +832,11 @@ export class LocoPanel extends HTMLElement {
                 } else {
                 }
 
+                this.powerInfo.emergencyStop = speedByte == 129;
+                this.powerInfo = this.powerInfo
+
 //                var loco: iLoco = { address: address, speed: newSpeed, direction: direction, funcMap: funcMap }
                 
-                this.powerInfo.emergencyStop = false;
-                this.power = this.powerInfo
                 const loco = this.locomotives.find(l => l.address == address)
                 if (loco) {
                     loco.speed = newSpeed;
@@ -880,19 +884,38 @@ export class LocoPanel extends HTMLElement {
         }
     }    
 
-    private _power?: iPowerInfo
-    public get power(): iPowerInfo | undefined {
-        return this._power;
+    private _powerInfo: iPowerInfo = {current: 0, emergencyStop: false, info: 0, programmingModeActive: false, shortCircuit: false, trackVoltageOn: false}
+    public get powerInfo(): iPowerInfo {
+        return this._powerInfo;
     }
-    public set power(pi: iPowerInfo) {
-        if (pi.emergencyStop) {
-            this.btnEmergency.classList.add('on')
+    public set powerInfo(pi: iPowerInfo) {
+        this._powerInfo = pi;
+        if(pi.trackVoltageOn) {
+            this.btnPower.style.backgroundColor = "green"
         } else {
-            this.btnEmergency.classList.remove('on')
+            this.btnPower.style.backgroundColor = "#555555"
         }
-        this._power = pi;
+
+
+        if (pi.emergencyStop) {
+            this.btnEmergency.style.backgroundColor = "red"
+        } else {
+            this.btnEmergency.style.backgroundColor = "#555555"
+        }
+        
     }
 
+    // private _powerInfo : iPowerInfo | undefined;
+    // public get powerInfo() : iPowerInfo | undefined {
+    //     return this._powerInfo;
+    // }
+    // public set powerInfo(v : iPowerInfo) {
+    //     this._powerInfo = v;
+    // }
+
+
 }
+
+
 
 customElements.define('loco-panel', LocoPanel)

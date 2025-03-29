@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "esbuild src/app.ts --bundle --outfile=./dist/app.js --format=iife --watch",
-    "build": "esbuild src/app.ts --bundle --outfile=../DCCEx/data/app.js --format=iife --minify"
+    "build": "esbuild src/app.ts --bundle --outfile=../dist/app.js --format=iife --minify && xcopy /E /Y /I .\\dist\\ ..\\data\\",
+    "upload": "esbuild src/app.ts --bundle --outfile=../dist/app.js --format=iife --minify && xcopy /E /Y /I .\\dist\\ ..\\data\\ && cd .. && pio run -e ESP32 --target uploadfs"
   },
   "author": "",
   "license": "ISC",

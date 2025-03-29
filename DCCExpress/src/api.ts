@@ -21,4 +21,8 @@ export class Api {
     static emergencyStop() {
         wsClient.send(Api.format(`<!>`))
     }
+    
+    static getSupportedLocos() {
+        wsClient.send(Api.format(`<c>`))
+    }
 }

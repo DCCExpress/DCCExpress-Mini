@@ -1,3 +1,4 @@
+import { Api } from "./api";
 import { ApiCommands } from "./dcc";
 
 export interface iData {
@@ -14,23 +15,31 @@ export class WebSocketClient {
     socket!: WebSocket;
     onOpen?: () => void;
     onError?: () => void;
+    onClosed?: () => void;
+    task?: number;
+    
 
     sendRaw(raw: string) {
         this.send({ type: ApiCommands.dccexraw, data: {raw: raw} as iDccRaw } as iData)
     }
 
     constructor() {
-        // Induláskor azonnali csatlakozás
-        //this.connect();
     }
 
     public connect(): void {
+
+
         const protocol = document.location.protocol === "https:" ? "wss:" : "ws:";
-        const host = document.location.host;
-        //const url = `${protocol}//${host}/ws`; 
+        let host = document.location.host;
+
+        if(document.location.hostname == "127.0.0.1") {
+            host = "192.168.1.143"
+        }
+
+        const url = `${protocol}//${host}/ws`; 
         
         // Node red listening /ws
-        const url = `ws://192.168.1.143/ws`;
+        //const url = `ws://192.168.1.143/ws`;
 
         console.log(`Connecting to ${url}`);
 
@@ -39,15 +48,14 @@ export class WebSocketClient {
         this.socket.onopen = () => {
             console.log("WebSocket connection established.");
             if (this.onOpen) {
-                //setTimeout(() => this.onOpen!(), 100);                
                 this.onOpen()
             }
         };
 
         this.socket.onmessage = (event) => {
             try {
-                const m = event.data!.toString().replace("\n", ""); 
-                const message: iData = JSON.parse(m);
+                //const m = event.data!.toString().replace("\n", ""); 
+                const message: iData = JSON.parse(event.data);
                 this.onMessage(message);
             } catch (error) {
                 console.error("Invalid message format received:", event.data);
@@ -55,8 +63,8 @@ export class WebSocketClient {
         };
 
         this.socket.onclose = () => {
-            if (this.onError) {
-                this.onError()
+            if (this.onClosed) {
+                this.onClosed()
             }
             console.warn("WebSocket connection closed. Reconnecting...");
             setTimeout(() => this.connect(), 1000); 
@@ -68,6 +76,17 @@ export class WebSocketClient {
             }
             console.error("WebSocket error:", error);
         };
+
+
+        if(this.task) {
+            clearInterval(this.task)
+        }
+
+        this.task = setInterval(() => {
+            Api.getSupportedLocos()
+        }, 1000)
+
+
     }
 
     send(data: iData): void {

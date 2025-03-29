@@ -8,7 +8,7 @@ size_t HTTPSerialWrapper::write(uint8_t b) {
   if (b == '\n') {
     if (_ws) {
       //_ws->textAll(_buffer);
-      String json = "{\"type\":\"rawInfo\",\"data\":{\"raw\":\"" + _buffer + "\"}}";
+      String json = "{\"type\":\"rawInfo\",\"data\":{\"raw\":\"" + escapeJson(_buffer) + "\"}}";
       _ws->textAll(json);
 
     }
@@ -51,4 +51,18 @@ void HTTPSerialWrapper::begin(unsigned long baud) {
 
 HTTPSerialWrapper::operator bool() const {
   return _base != nullptr;
+}
+
+String HTTPSerialWrapper::escapeJson(const String& input) {
+  String output = "";
+  for (unsigned int i = 0; i < input.length(); ++i) {
+    char c = input.charAt(i);
+    if (c == '\\') output += "\\\\";
+    else if (c == '\"') output += "\\\"";
+    else if (c == '\n') output += "\\n";
+    else if (c == '\r') output += "\\r";
+    else if (c == '\t') output += "\\t";
+    else output += c;
+  }
+  return output;
 }
