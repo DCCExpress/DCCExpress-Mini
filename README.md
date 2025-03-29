@@ -48,9 +48,6 @@ Related project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 
 ## Web Interface & Client-Side Development
 
-The EX-CommandStation project should be compiled the same way as the original.
-Make sure the HTTP directive is defined in your config.h to enable the web server.
-
 ### ⚠️ NodeJS  must be installed ⚠️
 
 * Install  
