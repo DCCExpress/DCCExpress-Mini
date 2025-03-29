@@ -36,7 +36,7 @@ Related project: [DCCExpress](https://github.com/jungervin/DCCExpress)
    Upload the contents of the `data/` folder using:
 
    ```bash
-   pio run -e ESP32 --target uploadfs
+   > pio run -e ESP32 --target uploadfs
    ```
 
    Or use the **"Upload Filesystem Image"** option from the PlatformIO menu.
