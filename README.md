@@ -41,7 +41,8 @@ Related project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 
    Or use the **"Upload Filesystem Image"** option from the PlatformIO menu.  
     ```
-    ⚠️ Make sure to run these commands from the directory where your `platformio.ini` file is located.
+    ⚠️ Make sure to run these commands from the directory where your
+    `platformio.ini` file is located.
     ```
 
 
