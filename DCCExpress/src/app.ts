@@ -1,5 +1,5 @@
 import { Api } from "./api";
-import { ApiCommands, iData, iConfig } from "./dcc";
+import { ApiCommands, iData, iConfig, iTurnout } from "./dcc";
 import { LocoPanel } from "./locoPanel";
 import { iDccRaw, wsClient } from "./ws";
 
@@ -13,9 +13,10 @@ export class App {
     config: iConfig = {
         startup: {
             power: "<1 MAIN>",
-            init: "<s><T 1 1>" 
+            init: "<s>\n<T 1 DCC 1>" 
         }
     };
+    
 
     constructor() {
 
@@ -33,15 +34,15 @@ export class App {
         }
 
         wsClient.onMessage = (msg: iData) => {
-            if (msg.type == ApiCommands.rawInfo) {
-                const raw = (msg.data as iDccRaw).raw
-                if (raw == "<!E>") {
-                    this.cp.powerInfo.emergencyStop = true;
-                    this.cp.power = this.cp.powerInfo
-                    this.cp.updateUI()
-                    return;
-                }
-            }
+            // if (msg.type == ApiCommands.rawInfo) {
+            //     const raw = (msg.data as iDccRaw).raw
+            //     if (raw == "<!E>") {
+            //         this.cp.powerInfo.emergencyStop = true;
+            //         this.cp.power = this.cp.powerInfo
+            //         this.cp.updateUI()
+            //         return;
+            //     }
+            // }
 
             this.cp.processMessage(msg)
 
@@ -71,6 +72,17 @@ export class App {
             .finally(() => {
                 wsClient.connect()
             });
+
+        // fetch("turnouts.json").then((res) => {
+        //     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        //     return res.json();
+
+        // }).then((json) => {
+        //     this.turnouts = json
+            
+        // }).catch((err) => {
+
+        // });      
     }
 
     sendRaw(raw: any) {

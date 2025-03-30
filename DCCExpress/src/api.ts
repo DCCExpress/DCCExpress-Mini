@@ -1,4 +1,4 @@
-import { ApiCommands, DccDirections, iData } from "./dcc";
+import { ApiCommands, DccDirections, iData, iTurnout } from "./dcc";
 import { iDccRaw, wsClient } from "./ws";
 
 export class Api {
@@ -25,4 +25,17 @@ export class Api {
     static getSupportedLocos() {
         wsClient.send(Api.format(`<c>`))
     }
+
+    static setTurnout(to: iTurnout) {
+        if(to.isAccessry) {
+
+        } else {
+            wsClient.send(Api.format(`<T ${to.address} ${to.isClosed ? 0 : 1}>`))
+        }
+    }
+
+    static getAllTurnout() {
+        wsClient.send(Api.format('<T>'))
+    }
+
 }

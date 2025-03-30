@@ -24,7 +24,8 @@
       };
       this.socket.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data);
+          const m = event.data.toString().replace(/[\n\r\t]/g, "");
+          const message = JSON.parse(m);
           this.onMessage(message);
         } catch (error) {
           console.error("Invalid message format received:", event.data);
@@ -83,6 +84,15 @@
     static getSupportedLocos() {
       wsClient.send(_Api.format(`<c>`));
     }
+    static setTurnout(to) {
+      if (to.isAccessry) {
+      } else {
+        wsClient.send(_Api.format(`<T ${to.address} ${to.isClosed ? 0 : 1}>`));
+      }
+    }
+    static getAllTurnout() {
+      wsClient.send(_Api.format("<T>"));
+    }
   };
 
   // src/locoPanel.ts
@@ -92,6 +102,7 @@
       this.locomotives = [];
       this.buttons = {};
       this._data = "";
+      this.turnouts = [];
       this._powerInfo = { current: 0, emergencyStop: false, info: 0, programmingModeActive: false, shortCircuit: false, trackVoltageOn: false };
       const shadow = this.attachShadow({ mode: "open" });
       shadow.innerHTML = `
@@ -243,7 +254,7 @@
                 }
 
                 /* Mozdony lista */
-                .loco-item {
+                .loco-item, .turnout-item{
                     display: flex;
                     flex-direction: column;
                     overflow: auto;
@@ -367,12 +378,10 @@
                     <div id="locoInfoSpeed">10</div>
                     <div id="locoInfoPower" style="color: #555555; font-size: 0.6em;display: flex; flex-direction: column; justify-content: flex-end; ">10</div>
                 </div>
-        
-
 
                 <div class="control-group">
-                    <button class="btn btn-warning flex-fill py-3">\u{1F500}</button>
-                    <button class="btn btn-success flex-fill py-3">\u{1F50C}</button>
+                    <button id="btnRoutes" class="btn btn-warning flex-fill py-3">\u{1F500}</button>
+                    <button id="btnTurnouts" class="btn btn-success flex-fill py-3">\u{1F50C}</button>
                     <button id="btnPower" class="btn btn-primary flex-fill py-3">\u26A1</button>
                     <button id="btnEmergency" class="btn btn-danger flex-fill py-3">\u{1F6D1}</button>
                 </div>
@@ -493,7 +502,13 @@
       this.fnButtons = shadow.getElementById("fnButtons");
       this.modal = shadow.getElementById("modal");
       this.modal.onclick = (e) => {
-        this.closeModal();
+        if (e.target == this.modal) {
+          this.closeModal();
+        }
+      };
+      const btnTurnouts = shadow.getElementById("btnTurnouts");
+      btnTurnouts.onclick = (e) => {
+        this.openTurnoutsModal();
       };
       for (var i = 0; i <= 28; i++) {
         const btn = document.createElement("button");
@@ -523,8 +538,50 @@
         this.fnButtons.appendChild(btn);
       }
     }
+    getSvgTurnoutClosed(id, isLeft) {
+      return `
+ <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
+   <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ""} >
+     <path
+        id="rect2"
+        style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583"
+        d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
+        />
+     <rect
+        style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
+        id="rect1"
+        width="1.8358474"
+        height="10.451042"
+        x="4.121172"
+        y="0.1322915" />
+   </g>
+ </svg>
+ `;
+    }
+    getSvgTurnoutThrown(id, isLeft) {
+      return `
+ <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
+   <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ""} >
+     <rect
+        style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
+        id="rect1"
+        width="1.8358474"
+        height="10.451042"
+        x="4.121172"
+        y="0.1322915" />
+     <path
+        id="rect2"
+        style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583"
+        d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
+        />
+
+   </g>
+ </svg>
+ `;
+    }
     init() {
       this.fetchLocomotives();
+      this.fetchTurnouts();
     }
     connectedCallback() {
     }
@@ -548,6 +605,16 @@
         }
       } catch (error) {
         console.error("Error fetching locomotives:", error);
+      }
+    }
+    async fetchTurnouts() {
+      try {
+        const response = await fetch(`turnouts.json`);
+        const turnouts = await response.json();
+        this.turnouts = turnouts.sort((a, b) => a.address - b.address);
+        Api.getAllTurnout();
+      } catch (error) {
+        console.error("Error fetching turnouts:", error);
       }
     }
     openPowerModal() {
@@ -596,6 +663,32 @@
           this.closeModal();
         });
         modalContent.appendChild(locoItem);
+      });
+      this.modal.style.display = "flex";
+    }
+    openTurnoutsModal() {
+      const modalContent = this.shadowRoot.getElementById("modalContent");
+      modalContent.innerHTML = "";
+      this.turnouts.forEach((trunout) => {
+        const tItem = document.createElement("div");
+        tItem.classList.add("loco-item");
+        const svg = trunout.isClosed ? this.getSvgTurnoutClosed(trunout.address, trunout.isLeft) : this.getSvgTurnoutThrown(trunout.address, trunout.isLeft);
+        tItem.innerHTML = `
+                <div style="height: 60px; width: 60px; display: flex; justify-content: center; align-items: center; background-color: gray">
+                    ${svg}
+                </div>
+                <div>#${trunout.address} ${trunout.name}</div>
+            `;
+        tItem.addEventListener("click", () => {
+          const to = this.turnouts.find((t) => {
+            return trunout.address == t.address;
+          });
+          if (to) {
+            to.isClosed = !to.isClosed;
+            Api.setTurnout(to);
+          }
+        });
+        modalContent.appendChild(tItem);
       });
       this.modal.style.display = "flex";
     }
@@ -680,7 +773,6 @@
     }
     processMessage(msg) {
       if (msg.type == "rawInfo" /* rawInfo */) {
-        console.log(msg.data);
         const raw = msg.data.raw;
         for (var i = 0; i < raw.length; i++) {
           var c = raw[i];
@@ -696,7 +788,6 @@
         }
       }
       if (msg.type == "ack" /* ack */) {
-        console.log(msg.data);
         switch (msg.data) {
           case "<!>":
             this.powerInfo.emergencyStop = true;
@@ -714,6 +805,7 @@
         this.powerInfo.current = parseInt(params[2]);
         this.locoInfoPowerElement.innerHTML = this.powerInfo.current.toString();
       } else if (data.startsWith("p1")) {
+        console.log(data);
         const params = data.split(" ");
         this.powerInfo.info = 1;
         if (params[1] == "MAIN" || params[1] == "A") {
@@ -725,6 +817,7 @@
         }
         this.powerInfo = this.powerInfo;
       } else if (data.startsWith("p0")) {
+        console.log(data);
         const params = data.split(" ");
         this.powerInfo.info = 0;
         if (params.length == 2) {
@@ -741,6 +834,7 @@
       } else if (data.startsWith("Q ")) {
       } else if (data.startsWith("q ")) {
       } else if (data.startsWith("l")) {
+        console.log(data);
         var items = data.split(" ");
         var address = parseInt(items[1]);
         var speedByte = parseInt(items[3]);
@@ -775,6 +869,14 @@
           }
         }
       } else if (data.startsWith("H")) {
+        console.log(data);
+        var items = data.split(" ");
+        var address = parseInt(items[1]);
+        var c = parseInt(items[2]) == 0;
+        const turnout = this.turnouts.find((t) => t.address == address);
+        if (turnout) {
+          turnout.isClosed = c != turnout.isInverted;
+        }
       } else if (data.startsWith("jT")) {
       } else if (data.startsWith("Y")) {
       } else if (data == "X") {
@@ -816,7 +918,7 @@
       this.config = {
         startup: {
           power: "<1 MAIN>",
-          init: "<s><T 1 1>"
+          init: "<s>\n<T 1 DCC 1>"
         }
       };
       this.cp = document.createElement("loco-panel");
@@ -829,15 +931,6 @@
       wsClient.onClosed = () => {
       };
       wsClient.onMessage = (msg) => {
-        if (msg.type == "rawInfo" /* rawInfo */) {
-          const raw = msg.data.raw;
-          if (raw == "<!E>") {
-            this.cp.powerInfo.emergencyStop = true;
-            this.cp.power = this.cp.powerInfo;
-            this.cp.updateUI();
-            return;
-          }
-        }
         this.cp.processMessage(msg);
       };
       fetch("config.json").then((res) => {

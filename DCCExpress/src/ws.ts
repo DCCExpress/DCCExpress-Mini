@@ -54,8 +54,8 @@ export class WebSocketClient {
 
         this.socket.onmessage = (event) => {
             try {
-                //const m = event.data!.toString().replace("\n", ""); 
-                const message: iData = JSON.parse(event.data);
+                const m = event.data.toString().replace(/[\n\r\t]/g, "")
+                const message: iData = JSON.parse(m);
                 this.onMessage(message);
             } catch (error) {
                 console.error("Invalid message format received:", event.data);

@@ -1,5 +1,5 @@
 import { Api } from "./api";
-import { ApiCommands, DccDirections, FunctionButton, iData, iLocomotive, iPowerInfo } from "./dcc";
+import { ApiCommands, DccDirections, FunctionButton, iData, iLocomotive, iPowerInfo, iTurnout } from "./dcc";
 import { iDccRaw, wsClient } from "./ws";
 
 
@@ -8,6 +8,49 @@ enum Colors {
 }
 
 export class LocoPanel extends HTMLElement {
+
+    getSvgTurnoutClosed(id: number, isLeft: boolean) {
+        return `
+ <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
+   <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
+     <path
+        id="rect2"
+        style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583"
+        d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
+        />
+     <rect
+        style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
+        id="rect1"
+        width="1.8358474"
+        height="10.451042"
+        x="4.121172"
+        y="0.1322915" />
+   </g>
+ </svg>
+ `
+     }
+
+     getSvgTurnoutThrown(id: number, isLeft: boolean) {
+        return `
+ <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
+   <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
+     <rect
+        style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
+        id="rect1"
+        width="1.8358474"
+        height="10.451042"
+        x="4.121172"
+        y="0.1322915" />
+     <path
+        id="rect2"
+        style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583"
+        d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
+        />
+
+   </g>
+ </svg>
+ `
+     }     
     locomotives: iLocomotive[] = [];
     locoImage: HTMLImageElement;
     btnReverse: HTMLButtonElement;
@@ -30,8 +73,10 @@ export class LocoPanel extends HTMLElement {
     //powerInfo: iPowerInfo = {current: 0, emergencyStop: false, info: 0, programmingModeActive: false, shortCircuit: false, trackVoltageOn: false}
     btnPower: HTMLButtonElement;
     locoInfoPowerElement: HTMLElement;
-    
-    
+
+    turnouts: iTurnout[] = [];
+
+
 
     constructor() {
         super()
@@ -187,7 +232,7 @@ export class LocoPanel extends HTMLElement {
                 }
 
                 /* Mozdony lista */
-                .loco-item {
+                .loco-item, .turnout-item{
                     display: flex;
                     flex-direction: column;
                     overflow: auto;
@@ -311,12 +356,10 @@ export class LocoPanel extends HTMLElement {
                     <div id="locoInfoSpeed">10</div>
                     <div id="locoInfoPower" style="color: #555555; font-size: 0.6em;display: flex; flex-direction: column; justify-content: flex-end; ">10</div>
                 </div>
-        
-
 
                 <div class="control-group">
-                    <button class="btn btn-warning flex-fill py-3">🔀</button>
-                    <button class="btn btn-success flex-fill py-3">🔌</button>
+                    <button id="btnRoutes" class="btn btn-warning flex-fill py-3">🔀</button>
+                    <button id="btnTurnouts" class="btn btn-success flex-fill py-3">🔌</button>
                     <button id="btnPower" class="btn btn-primary flex-fill py-3">⚡</button>
                     <button id="btnEmergency" class="btn btn-danger flex-fill py-3">🛑</button>
                 </div>
@@ -444,7 +487,7 @@ export class LocoPanel extends HTMLElement {
         this.btnSpeed100 = shadow.getElementById("btnSpeed100") as HTMLButtonElement
         this.btnSpeed100.onclick = (e) => {
             if (this.currentLoco) {
-               Api.setLoco(this.currentLoco.address, this.getSpeedPercentage(100), this.currentLoco.direction)
+                Api.setLoco(this.currentLoco.address, this.getSpeedPercentage(100), this.currentLoco.direction)
             }
         }
 
@@ -452,7 +495,14 @@ export class LocoPanel extends HTMLElement {
 
         this.modal = shadow.getElementById("modal") as HTMLDivElement;
         this.modal.onclick = (e) => {
-            this.closeModal()
+            if(e.target == this.modal) {
+                this.closeModal()
+            }
+        }
+
+        const btnTurnouts = shadow.getElementById("btnTurnouts") as HTMLButtonElement;
+        btnTurnouts.onclick = (e) => {
+            this.openTurnoutsModal()
         }
 
         for (var i = 0; i <= 28; i++) {
@@ -489,7 +539,7 @@ export class LocoPanel extends HTMLElement {
 
         }
 
-        
+
 
         // window.addEventListener('taskChangedEvent', (e: Event) => {
         // })
@@ -498,6 +548,7 @@ export class LocoPanel extends HTMLElement {
 
     init() {
         this.fetchLocomotives()
+        this.fetchTurnouts()
     }
     connectedCallback() {
 
@@ -530,10 +581,23 @@ export class LocoPanel extends HTMLElement {
         }
     }
 
+    public async fetchTurnouts() {
+        try {
+            const response = await fetch(`turnouts.json`);
+            const turnouts = await response.json();
+            this.turnouts = turnouts.sort((a: iTurnout, b: iTurnout) => a.address - b.address);
+            Api.getAllTurnout()
+
+        } catch (error) {
+            console.error("Error fetching turnouts:", error);
+        }
+    }
+
+
     openPowerModal() {
         const modalContent = this.shadowRoot!.getElementById("modalContent") as HTMLElement;
         modalContent.innerHTML = "";
-        
+
         const div = document.createElement("div")
         div.className = "d-grid gap-2"
         modalContent.appendChild(div)
@@ -555,15 +619,15 @@ export class LocoPanel extends HTMLElement {
         }
 
 
-    //     const html = `
-    //     <div class="modal-body" style="">
-    //     <div class="d-grid gap-2">
-    //       <button class="btn btn-success" id="mainOn">Main ON</button>
-    //       <button class="btn btn-secondary" id="mainOff">Main OFF</button>
-    //       <button class="btn btn-primary" id="progOn">Prog ON</button>
-    //       <button class="btn btn-dark" id="progOff">Prog OFF</button>
-    //     </div>
-    //   </div>        `
+        //     const html = `
+        //     <div class="modal-body" style="">
+        //     <div class="d-grid gap-2">
+        //       <button class="btn btn-success" id="mainOn">Main ON</button>
+        //       <button class="btn btn-secondary" id="mainOff">Main OFF</button>
+        //       <button class="btn btn-primary" id="progOn">Prog ON</button>
+        //       <button class="btn btn-dark" id="progOff">Prog OFF</button>
+        //     </div>
+        //   </div>        `
         //modalContent.innerHTML = html;
         this.modal.style.display = "flex"
         // const mainOn = document.getElementById("mainOn") as HTMLButtonElement
@@ -607,8 +671,38 @@ export class LocoPanel extends HTMLElement {
                 this.currentLoco = loco;
                 this.closeModal()
             });
-            modalContent.appendChild(locoItem);          
+            modalContent.appendChild(locoItem);
         });
+
+        this.modal.style.display = "flex"
+    }
+
+    openTurnoutsModal() {
+        const modalContent = this.shadowRoot!.getElementById("modalContent") as HTMLElement;
+        modalContent.innerHTML = "";
+
+        this.turnouts.forEach((trunout) => {
+            const tItem = document.createElement("div");
+            tItem.classList.add("loco-item");
+            const svg = trunout.isClosed ? this.getSvgTurnoutClosed(trunout.address, trunout.isLeft) :  this.getSvgTurnoutThrown(trunout.address, trunout.isLeft)
+            tItem.innerHTML = `
+                <div style="height: 60px; width: 60px; display: flex; justify-content: center; align-items: center; background-color: gray">
+                    ${svg}
+                </div>
+                <div>#${trunout.address} ${trunout.name}</div>
+            `;
+
+            tItem.addEventListener("click", () => {
+                const to = this.turnouts.find((t) => {
+                    return trunout.address == t.address
+                })
+                if(to) {
+                    to.isClosed = !to.isClosed
+                    Api.setTurnout(to)
+                }
+            })
+            modalContent.appendChild(tItem);
+        })
 
         this.modal.style.display = "flex"
     }
@@ -724,8 +818,8 @@ export class LocoPanel extends HTMLElement {
     }
     public processMessage(msg: iData) {
 
-        if(msg.type == ApiCommands.rawInfo) {
-            console.log(msg.data)
+        if (msg.type == ApiCommands.rawInfo) {
+            
             const raw = (msg.data as iDccRaw).raw
             
             for (var i = 0; i < raw.length; i++) {
@@ -742,13 +836,13 @@ export class LocoPanel extends HTMLElement {
                 }
             }
         }
-        if(msg.type == ApiCommands.ack) {
-            console.log(msg.data)
-            switch(msg.data) {
+        if (msg.type == ApiCommands.ack) {
+            //console.log(msg.data)
+            switch (msg.data) {
                 case '<!>':
                     this.powerInfo.emergencyStop = true;
                     this.powerInfo = this.powerInfo
-                break;
+                    break;
             }
         }
     }
@@ -759,14 +853,15 @@ export class LocoPanel extends HTMLElement {
             return
         }
 
-        if(data.startsWith('c CurrentMAIN')) {
+        if (data.startsWith('c CurrentMAIN')) {
             const params = data.split(" ");
-            
+
             this.powerInfo.current = parseInt(params[2])
             this.locoInfoPowerElement.innerHTML = this.powerInfo.current.toString()
-            
+
         }
         else if (data.startsWith('p1')) {
+            console.log(data)
             const params = data.split(" ");
             this.powerInfo.info = 0b00000001
             if (params[1] == 'MAIN' || params[1] == 'A') {
@@ -779,6 +874,7 @@ export class LocoPanel extends HTMLElement {
             this.powerInfo = this.powerInfo
         }
         else if (data.startsWith('p0')) {
+            console.log(data)
             const params = data.split(" ");
             this.powerInfo.info = 0b00000000
             if (params.length == 2) {
@@ -805,7 +901,7 @@ export class LocoPanel extends HTMLElement {
             // broadcastAll({ type: ApiCommands.sensorInfo, data: si } as iData)
         }
         else if (data.startsWith('l')) {
-
+            console.log(data)
             var items = data.split(" ")
             var address = parseInt(items[1])
             var speedByte = parseInt(items[3]);
@@ -835,30 +931,36 @@ export class LocoPanel extends HTMLElement {
                 this.powerInfo.emergencyStop = speedByte == 129;
                 this.powerInfo = this.powerInfo
 
-//                var loco: iLoco = { address: address, speed: newSpeed, direction: direction, funcMap: funcMap }
-                
+                //                var loco: iLoco = { address: address, speed: newSpeed, direction: direction, funcMap: funcMap }
+
                 const loco = this.locomotives.find(l => l.address == address)
                 if (loco) {
                     loco.speed = newSpeed;
                     loco.direction = direction
                     loco.functionMap = funcMap
-    
-    
-    
+
+
+
                     if (this.currentLoco && this.currentLoco.address == loco.address) {
                         this.updateUI()
                     }
                 }
-    
+
                 // broadcastAll({ type: ApiCommands.locoInfo, data: loco } as iData)
                 // log("BROADCAST DCC-EX LOCO INFO:", loco)
             }
         }
         else if (data.startsWith('H')) {
-            // var items = data.split(" ")
-            // var address = parseInt(items[1])
-            // var t: iTurnoutInfo = { address: address, isClosed: parseInt(items[2]) == 0 }
-            // broadcastAll({ type: ApiCommands.turnoutInfo, data: t } as iData)
+            console.log(data)
+            var items = data.split(" ")
+            var address = parseInt(items[1])
+            var c = parseInt(items[2]) == 0;
+
+            const turnout = this.turnouts.find((t) => t.address == address)
+            if (turnout) {
+                turnout.isClosed = c != turnout.isInverted
+            }
+
         }
         else if (data.startsWith("jT")) {
             // var items = data.split(" ")
@@ -882,15 +984,15 @@ export class LocoPanel extends HTMLElement {
             // console.log("DCCExCommandCenter: Unknown data received: ", data)
             // broadcastAll({ type: ApiCommands.dccExDirectCommandResponse, data: { response: data } as iDccExDirectCommandResponse } as iData)
         }
-    }    
+    }
 
-    private _powerInfo: iPowerInfo = {current: 0, emergencyStop: false, info: 0, programmingModeActive: false, shortCircuit: false, trackVoltageOn: false}
+    private _powerInfo: iPowerInfo = { current: 0, emergencyStop: false, info: 0, programmingModeActive: false, shortCircuit: false, trackVoltageOn: false }
     public get powerInfo(): iPowerInfo {
         return this._powerInfo;
     }
     public set powerInfo(pi: iPowerInfo) {
         this._powerInfo = pi;
-        if(pi.trackVoltageOn) {
+        if (pi.trackVoltageOn) {
             this.btnPower.style.backgroundColor = "green"
         } else {
             this.btnPower.style.backgroundColor = "#555555"
@@ -902,7 +1004,7 @@ export class LocoPanel extends HTMLElement {
         } else {
             this.btnEmergency.style.backgroundColor = "#555555"
         }
-        
+
     }
 
     // private _powerInfo : iPowerInfo | undefined;

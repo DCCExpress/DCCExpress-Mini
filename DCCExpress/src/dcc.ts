@@ -116,3 +116,13 @@ export interface iStartup {
 export interface iConfig {
     startup: iStartup;
 }
+
+export interface iTurnout {
+    id: number,
+    address: number,
+    name: string,
+    isLeft: boolean,
+    isInverted: boolean,
+    isAccessry: boolean,
+    isClosed: boolean
+}

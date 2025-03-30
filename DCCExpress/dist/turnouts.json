@@ -1,0 +1,18 @@
+[
+    {
+      "id": 1743315541903,
+      "name": "T1",
+      "address": 1,
+      "isAccessory": false,
+      "inverted": false,
+      "isLeft": false
+    },
+    {
+      "id": 1743315541903,
+      "name": "T2",
+      "address": 2,
+      "isAccessory": false,
+      "inverted": false,
+      "isLeft": true
+    }
+  ]

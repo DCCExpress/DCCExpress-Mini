@@ -9,7 +9,7 @@ AsyncWebSocket ws("/ws");
 
 void dccParseRaw(const String &raw)
 {
-  Serial.println("RAW: " + raw);
+  //Serial.println("RAW: " + raw);
   const char *cmd = raw.c_str();
   DCCEXParser::parse(cmd);
 }
@@ -116,7 +116,7 @@ void setupHTTPServer()
                 String type = doc["type"].as<String>();
                 if (type == "dccexraw") {
                 String raw = doc["data"]["raw"].as<String>();
-                Serial.println("DCCEX RAW: " + raw);
+                //Serial.println("DCCEX RAW: " + raw);
 
                 server->textAll("{\"type\":\"ack\",\"data\":\""+ raw +"\"}");
                 dccParseRaw(raw);
@@ -129,5 +129,5 @@ void setupHTTPServer()
 
   httpServer.addHandler(&ws);
   httpServer.begin();
-  Serial.println("🌍 Webserver started!");
+  Serial.println("Webserver started!");
 }
