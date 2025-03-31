@@ -123,6 +123,6 @@ export interface iTurnout {
     name: string,
     isLeft: boolean,
     isInverted: boolean,
-    isAccessry: boolean,
+    isAccessory: boolean,
     isClosed: boolean
 }

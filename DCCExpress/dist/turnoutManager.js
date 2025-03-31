@@ -29,7 +29,7 @@ export const turnoutManager = new class extends DataManager {
     addButton.onclick = () => {
       const newId = Date.now();
       const address = 0
-      this.new({ id: newId, name: `T${address}`, address: address, isAccessory: false, inverted: false, isLeft: false });
+      this.new({ id: newId, name: `T${address}`, address: address, isAccessory: false, isInverted: false, isLeft: false });
     };
     container.appendChild(addButton);
 
@@ -48,7 +48,7 @@ export const turnoutManager = new class extends DataManager {
           </label>
         </div>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" ${item.inverted ? 'checked' : ''} disabled>
+          <input class="form-check-input" type="checkbox" value="" ${item.isInverted ? 'checked' : ''} disabled>
           <label class="form-check-label">
             Inverted
           </label>
@@ -78,7 +78,7 @@ export const turnoutManager = new class extends DataManager {
     modalElement.querySelector("#itemId").value = item.id;
     modalElement.querySelector("#itemAddress").value = item.address;
     modalElement.querySelector("#itemIsLeft").checked = item.isLeft;
-    modalElement.querySelector("#itemInverted").checked = item.inverted;
+    modalElement.querySelector("#itemInverted").checked = item.isInverted;
     modalElement.querySelector("#itemIsAccessory").checked = item.isAccessory;
 
     //    modalEl.classList.add("show");
@@ -97,7 +97,7 @@ export const turnoutManager = new class extends DataManager {
       item.name = modalElement.querySelector("#itemName").value;
       item.address = parseInt(modalElement.querySelector("#itemAddress").value);
       item.isLeft = modalElement.querySelector("#itemIsLeft").checked;
-      item.inverted = modalElement.querySelector("#itemInverted").checked;
+      item.isInverted = modalElement.querySelector("#itemInverted").checked;
       item.isAccessory = modalElement.querySelector("#itemIsAccessory").checked;
       this.edit(item.id, item);
       modal.hide()

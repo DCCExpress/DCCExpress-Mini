@@ -681,24 +681,34 @@ export class LocoPanel extends HTMLElement {
         const modalContent = this.shadowRoot!.getElementById("modalContent") as HTMLElement;
         modalContent.innerHTML = "";
 
-        this.turnouts.forEach((trunout) => {
+        this.turnouts.forEach((turnout) => {
             const tItem = document.createElement("div");
             tItem.classList.add("loco-item");
-            const svg = trunout.isClosed ? this.getSvgTurnoutClosed(trunout.address, trunout.isLeft) :  this.getSvgTurnoutThrown(trunout.address, trunout.isLeft)
+            const svg = turnout.isClosed ? this.getSvgTurnoutClosed(turnout.address, turnout.isLeft) :  this.getSvgTurnoutThrown(turnout.address, turnout.isLeft)
             tItem.innerHTML = `
-                <div style="height: 60px; width: 60px; display: flex; justify-content: center; align-items: center; background-color: gray">
+                <div id="svg-turnout-${turnout.address.toString()}"  style="height: 60px; width: 60px; display: flex; justify-content: center; align-items: center; background-color: gray">
                     ${svg}
                 </div>
-                <div>#${trunout.address} ${trunout.name}</div>
+                <div>#${turnout.address} ${turnout.name}</div>
             `;
 
             tItem.addEventListener("click", () => {
                 const to = this.turnouts.find((t) => {
-                    return trunout.address == t.address
+                    return turnout.address == t.address
                 })
                 if(to) {
+
                     to.isClosed = !to.isClosed
                     Api.setTurnout(to)
+
+                    const svgContainer = this.shadowRoot!.getElementById(`svg-turnout-${to.address}`);
+                    if (svgContainer) {
+                        svgContainer.innerHTML = to.isClosed != to.isInverted
+                          ? this.getSvgTurnoutClosed(to.address, to.isLeft)
+                          : this.getSvgTurnoutThrown(to.address, to.isLeft);
+                    }                    
+
+                    
                 }
             })
             modalContent.appendChild(tItem);

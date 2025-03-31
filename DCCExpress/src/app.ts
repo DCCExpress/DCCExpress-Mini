@@ -3,7 +3,6 @@ import { ApiCommands, iData, iConfig, iTurnout } from "./dcc";
 import { LocoPanel } from "./locoPanel";
 import { iDccRaw, wsClient } from "./ws";
 
-
 console.log(LocoPanel)
 console.log(Api)
 
@@ -26,7 +25,6 @@ export class App {
         wsClient.onOpen = () => {
             wsClient.sendRaw(this.config.startup.power)
             wsClient.sendRaw(this.config.startup.init)
-            this.cp.init()
         }
 
         wsClient.onClosed = () => {
@@ -72,6 +70,8 @@ export class App {
             .finally(() => {
                 wsClient.connect()
             });
+
+            this.cp.init()
 
         // fetch("turnouts.json").then((res) => {
         //     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
