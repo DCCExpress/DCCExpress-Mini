@@ -11,10 +11,10 @@
 </head>
 
 <body class="bg-light">
-    <div class="container my-5 text-center">
+    <div class="container my-5 justify-content-center align-items-center">
         <h2 class="text-center mb-4">🚂 Locomotives</h2>
 
-        <div class="row mb-3">
+        <div class="row mb-3 justify-content-center">
             <div class="col-12 col-sm-10 col-md-8 col-lg-6 d-flex flex-column gap-3">
                 <button class="btn btn-primary" data-bs-toggle="modal" onclick="openLocoModal()">
                     New...
@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="row justify-content-center">
             <div id="locosList" class="col-12 col-sm-10 col-md-8 col-lg-6 d-flex flex-column gap-3">
 
             </div>
@@ -97,7 +97,7 @@
         <div class="modal-dialog modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Funkciók szerkesztése</h5>
+                    <h5 class="modal-title">Functions</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Bezárás"></button>
                 </div>
 
@@ -110,11 +110,11 @@
                 <div class="modal-footer">
                     <div class="d-grid">
                         <button class="btn btn-outline-success" onclick="addFunction()">
-                            ➕ Új funkció hozzáadása
+                            ➕ New Function
                         </button>
                     </div>
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
-                    <button class="btn btn-primary" onclick="saveFunctions()">Mentés</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveFunctions()">Save</button>
                 </div>
             </div>
         </div>
@@ -393,12 +393,12 @@
                 const html = `
     <div class="card p-3">
       <div class="mb-2">
-        <label class="form-label">Funkció ID</label>
+        <label class="form-label">Function Nr</label>
         <input type="text" class="form-control" value="${func.id ?? ""}" data-key="id" data-index="${index}">
       </div>
 
       <div class="mb-2">
-        <label class="form-label">Név</label>
+        <label class="form-label">Name</label>
         <input type="text" class="form-control" value="${func.name || ""}" data-key="name" data-index="${index}">
       </div>
 
