@@ -6,6 +6,7 @@
 AsyncWebServer httpServer(80);
 AsyncWebSocket ws("/ws");
 #include <ArduinoJson.h>
+#include "DIAG.h"
 
 void dccParseRaw(const String &raw)
 {
@@ -34,6 +35,7 @@ void setupHTTPServer()
     return;
   }
   Serial.println("LittleFS started!");
+  LCD(4, F("HTTP: FS error"));
 
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 
@@ -130,4 +132,5 @@ void setupHTTPServer()
   httpServer.addHandler(&ws);
   httpServer.begin();
   Serial.println("Webserver started!");
+  LCD(4, F("HTTP: OK"));
 }

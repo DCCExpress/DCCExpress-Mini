@@ -1,7 +1,7 @@
 # DCCExpress-Mini
 
 ### ⚠️ Under development ⚠️  
-This project is a customized fork of the [DCC-EX CommandStation-EX](https://github.com/DCC-EX/CommandStation-EX) project, built specifically for ESP32-based systems. 
+This project is a customized fork of the [DCC-EX CommandStation-EX](https://github.com/DCC-EX/CommandStation-EX) (v5.4.7) project, built specifically for ESP32-based systems. 
 The goal is to provide a standalone wireless DCC control system with a mobile-friendly user interface, file management, and real-time communication.
 
 Related project: [DCCExpress](https://github.com/jungervin/DCCExpress)

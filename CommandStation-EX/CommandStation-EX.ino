@@ -148,7 +148,7 @@ void setup()
   CommandDistributor::broadcastPower();
 
 #ifdef HTTP
-  LCD(4, F("HTTP"));
+  LCD(4, F("HTTP  Starting..."));
   setupHTTPServer();
 #endif
 }
