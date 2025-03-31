@@ -86,6 +86,7 @@
     }
     static setTurnout(to) {
       if (to.isAccessory) {
+        wsClient.send(_Api.format(`<a ${to.address} ${to.isClosed ? 0 : 1}>`));
       } else {
         wsClient.send(_Api.format(`<T ${to.address} ${to.isClosed ? 0 : 1}>`));
       }

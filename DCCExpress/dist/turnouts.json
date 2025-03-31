@@ -3,7 +3,7 @@
       "id": 1743315541903,
       "name": "T1",
       "address": 1,
-      "isAccessory": false,
+      "isAccessory": true,
       "isInverted": false,
       "isLeft": false
     },

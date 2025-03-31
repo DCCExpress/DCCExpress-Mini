@@ -3,8 +3,8 @@
       "id": 1743315541903,
       "name": "T1",
       "address": 1,
-      "isAccessory": false,
-      "inverted": false,
+      "isAccessory": true,
+      "isInverted": false,
       "isLeft": false
     },
     {
@@ -12,7 +12,7 @@
       "name": "T2",
       "address": 2,
       "isAccessory": false,
-      "inverted": false,
+      "isInverted": false,
       "isLeft": true
     }
   ]

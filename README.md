@@ -17,7 +17,9 @@ Related project: [DCCExpress](https://github.com/jungervin/DCCExpress)
 - 🛠️ **Function editor** with momentary toggles and customizable labels
 - 🗃️ **LittleFS storage** for persistent config, loco data, and file uploads
 - 🗂️ **File manager** interface for maintaining and organizing files
-
+- ✅ Locos
+- ✅ Turnouts
+- ⌛Route Manager
 
 ## ✅ What you need to do
 

@@ -29,7 +29,7 @@ export const turnoutManager = new class extends DataManager {
     addButton.onclick = () => {
       const newId = Date.now();
       const address = 0
-      this.new({ id: newId, name: `T${address}`, address: address, isAccessory: false, inverted: false, isLeft: false });
+      this.new({ id: newId, name: `T${address}`, address: address, isInverted: false, isLeft: false });
     };
     container.appendChild(addButton);
 
@@ -48,19 +48,11 @@ export const turnoutManager = new class extends DataManager {
           </label>
         </div>
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" ${item.inverted ? 'checked' : ''} disabled>
+          <input class="form-check-input" type="checkbox" value="" ${item.isInverted ? 'checked' : ''} disabled>
           <label class="form-check-label">
             Inverted
           </label>
         </div>
-
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" ${item.isAccessory ? 'checked' : ''} disabled>
-          <label class="form-check-label">
-            Accessory
-          </label>
-        </div>
-
 
         <button class="btn btn-sm btn-primary me-2" onclick="turnoutManager.showModal(${item.id})">Edit</button>
         <button class="btn btn-sm btn-danger" onclick="turnoutManager.delete(${item.id})">Delete</button>
@@ -78,8 +70,8 @@ export const turnoutManager = new class extends DataManager {
     modalElement.querySelector("#itemId").value = item.id;
     modalElement.querySelector("#itemAddress").value = item.address;
     modalElement.querySelector("#itemIsLeft").checked = item.isLeft;
-    modalElement.querySelector("#itemInverted").checked = item.inverted;
-    modalElement.querySelector("#itemIsAccessory").checked = item.isAccessory;
+    modalElement.querySelector("#itemInverted").checked = item.isInverted;
+    
 
     //    modalEl.classList.add("show");
 
@@ -97,8 +89,8 @@ export const turnoutManager = new class extends DataManager {
       item.name = modalElement.querySelector("#itemName").value;
       item.address = parseInt(modalElement.querySelector("#itemAddress").value);
       item.isLeft = modalElement.querySelector("#itemIsLeft").checked;
-      item.inverted = modalElement.querySelector("#itemInverted").checked;
-      item.isAccessory = modalElement.querySelector("#itemIsAccessory").checked;
+      item.isInverted = modalElement.querySelector("#itemInverted").checked;
+      
       this.edit(item.id, item);
       modal.hide()
     };
@@ -117,18 +109,14 @@ export const turnoutManager = new class extends DataManager {
       this.test(false)
     }
   }
-  test(on) {
+  test(isClosed) {
     const modalElement = document.getElementById("editModal");
     const address = modalElement.querySelector("#itemAddress").value;
     const isLeft = modalElement.querySelector("#itemIsLeft").checked;
     const inverted = modalElement.querySelector("#itemInverted").checked;
-    const isAccessory = modalElement.querySelector("#itemIsAccessory").checked;
 
-    if (isAccessory) {
-      this.ws.sendRaw(`<a ${address} ${(on == !inverted) ? 1 : 0}>`)
-    } else {
-      this.ws.sendRaw(`<T ${address} ${(on == !inverted) ? 1 : 0}>`)
-    }
+
+      this.ws.sendRaw(`<T ${address} ${(isClosed == !inverted) ? 0 : 1}>`)
   }
 
 

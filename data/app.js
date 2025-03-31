@@ -85,7 +85,8 @@
       wsClient.send(_Api.format(`<c>`));
     }
     static setTurnout(to) {
-      if (to.isAccessry) {
+      if (to.isAccessory) {
+        wsClient.send(_Api.format(`<a ${to.address} ${to.isClosed ? 0 : 1}>`));
       } else {
         wsClient.send(_Api.format(`<T ${to.address} ${to.isClosed ? 0 : 1}>`));
       }
@@ -669,23 +670,27 @@
     openTurnoutsModal() {
       const modalContent = this.shadowRoot.getElementById("modalContent");
       modalContent.innerHTML = "";
-      this.turnouts.forEach((trunout) => {
+      this.turnouts.forEach((turnout) => {
         const tItem = document.createElement("div");
         tItem.classList.add("loco-item");
-        const svg = trunout.isClosed ? this.getSvgTurnoutClosed(trunout.address, trunout.isLeft) : this.getSvgTurnoutThrown(trunout.address, trunout.isLeft);
+        const svg = turnout.isClosed ? this.getSvgTurnoutClosed(turnout.address, turnout.isLeft) : this.getSvgTurnoutThrown(turnout.address, turnout.isLeft);
         tItem.innerHTML = `
-                <div style="height: 60px; width: 60px; display: flex; justify-content: center; align-items: center; background-color: gray">
+                <div id="svg-turnout-${turnout.address.toString()}"  style="height: 60px; width: 60px; display: flex; justify-content: center; align-items: center; background-color: gray">
                     ${svg}
                 </div>
-                <div>#${trunout.address} ${trunout.name}</div>
+                <div>#${turnout.address} ${turnout.name}</div>
             `;
         tItem.addEventListener("click", () => {
           const to = this.turnouts.find((t) => {
-            return trunout.address == t.address;
+            return turnout.address == t.address;
           });
           if (to) {
             to.isClosed = !to.isClosed;
             Api.setTurnout(to);
+            const svgContainer = this.shadowRoot.getElementById(`svg-turnout-${to.address}`);
+            if (svgContainer) {
+              svgContainer.innerHTML = to.isClosed != to.isInverted ? this.getSvgTurnoutClosed(to.address, to.isLeft) : this.getSvgTurnoutThrown(to.address, to.isLeft);
+            }
           }
         });
         modalContent.appendChild(tItem);
@@ -926,7 +931,6 @@
       wsClient.onOpen = () => {
         wsClient.sendRaw(this.config.startup.power);
         wsClient.sendRaw(this.config.startup.init);
-        this.cp.init();
       };
       wsClient.onClosed = () => {
       };
@@ -941,6 +945,7 @@
       }).catch((err) => console.error("Hiba a config.json beolvas\xE1sakor:", err)).finally(() => {
         wsClient.connect();
       });
+      this.cp.init();
     }
     sendRaw(raw) {
       const json = {

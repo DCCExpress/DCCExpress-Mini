@@ -27,11 +27,7 @@ export class Api {
     }
 
     static setTurnout(to: iTurnout) {
-        if(to.isAccessory) {
-
-        } else {
             wsClient.send(Api.format(`<T ${to.address} ${to.isClosed ? 0 : 1}>`))
-        }
     }
 
     static getAllTurnout() {
