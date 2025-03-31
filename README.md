@@ -90,9 +90,9 @@ DCCExpress> npm run upload
 ## 🖼️ Images
 ![](web/images/control.jpg)
 
-![](web/images/turnouts.jpg)
-
 ![](web/images/locoeditor.jpg)
+
+![](web/images/turnouts.jpg)
 
 ![](web/images/filemanager.jpg)
 
