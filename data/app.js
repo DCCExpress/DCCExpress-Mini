@@ -1,112 +1,4 @@
-"use strict";
-(() => {
-  // src/ws.ts
-  var WebSocketClient = class {
-    sendRaw(raw) {
-      this.send({ type: "dccexraw" /* dccexraw */, data: { raw } });
-    }
-    constructor() {
-    }
-    connect() {
-      const protocol = document.location.protocol === "https:" ? "wss:" : "ws:";
-      let host = document.location.host;
-      if (document.location.hostname == "127.0.0.1") {
-        host = "192.168.1.143";
-      }
-      const url = `${protocol}//${host}/ws`;
-      console.log(`Connecting to ${url}`);
-      this.socket = new WebSocket(url);
-      this.socket.onopen = () => {
-        console.log("WebSocket connection established.");
-        if (this.onOpen) {
-          this.onOpen();
-        }
-      };
-      this.socket.onmessage = (event) => {
-        try {
-          const m = event.data.toString().replace(/[\n\r\t]/g, "");
-          const message = JSON.parse(m);
-          this.onMessage(message);
-        } catch (error) {
-          console.error("Invalid message format received:", event.data);
-        }
-      };
-      this.socket.onclose = () => {
-        if (this.onClosed) {
-          this.onClosed();
-        }
-        console.warn("WebSocket connection closed. Reconnecting...");
-        setTimeout(() => this.connect(), 1e3);
-      };
-      this.socket.onerror = (error) => {
-        if (this.onError) {
-          this.onError();
-        }
-        console.error("WebSocket error:", error);
-      };
-      if (this.task) {
-        clearInterval(this.task);
-      }
-      this.task = setInterval(() => {
-        Api.getSupportedLocos();
-      }, 1e3);
-    }
-    send(data) {
-      if (this.socket.readyState === WebSocket.OPEN) {
-        this.socket.send(JSON.stringify(data));
-      } else {
-        console.warn("Cannot send message. WebSocket is not open.");
-      }
-    }
-    onMessage(message) {
-      console.log("Processing message:", message);
-    }
-  };
-  var wsClient = new WebSocketClient();
-
-  // src/api.ts
-  var Api = class _Api {
-    static format(raw) {
-      return { type: "dccexraw" /* dccexraw */, data: { raw } };
-    }
-    static setLoco(address, speed, direction) {
-      wsClient.send(_Api.format(`<t ${address} ${speed} ${direction}>`));
-    }
-    static getLocoInfo(address) {
-      wsClient.send(_Api.format(`<t ${address}>`));
-    }
-    static setLocoFunction(address, fn, on) {
-      wsClient.send(_Api.format(`<F ${address} ${fn} ${on ? 1 : 0}>`));
-    }
-    static emergencyStop() {
-      wsClient.send(_Api.format(`<!>`));
-    }
-    static getSupportedLocos() {
-      wsClient.send(_Api.format(`<c>`));
-    }
-    static setTurnout(to) {
-      if (to.isAccessory) {
-        wsClient.send(_Api.format(`<a ${to.address} ${to.isClosed ? 0 : 1}>`));
-      } else {
-        wsClient.send(_Api.format(`<T ${to.address} ${to.isClosed ? 0 : 1}>`));
-      }
-    }
-    static getAllTurnout() {
-      wsClient.send(_Api.format("<T>"));
-    }
-  };
-
-  // src/locoPanel.ts
-  var LocoPanel = class extends HTMLElement {
-    constructor() {
-      super();
-      this.locomotives = [];
-      this.buttons = {};
-      this._data = "";
-      this.turnouts = [];
-      this._powerInfo = { current: 0, emergencyStop: false, info: 0, programmingModeActive: false, shortCircuit: false, trackVoltageOn: false };
-      const shadow = this.attachShadow({ mode: "open" });
-      shadow.innerHTML = `
+"use strict";(()=>{var f=class{sendRaw(r){this.send({type:"dccexraw",data:{raw:r}})}constructor(){}connect(){let r=document.location.protocol==="https:"?"wss:":"ws:",t=document.location.host;document.location.hostname=="127.0.0.1"&&(t="192.168.1.143");let o=`${r}//${t}/ws`;console.log(`Connecting to ${o}`),this.socket=new WebSocket(o),this.socket.onopen=()=>{console.log("WebSocket connection established."),this.onOpen&&this.onOpen()},this.socket.onmessage=n=>{try{let e=n.data.toString().replace(/[\n\r\t]/g,""),s=JSON.parse(e);this.onMessage(s)}catch{console.error("Invalid message format received:",n.data)}},this.socket.onclose=()=>{this.onClosed&&this.onClosed(),console.warn("WebSocket connection closed. Reconnecting..."),setTimeout(()=>this.connect(),1e3)},this.socket.onerror=n=>{this.onError&&this.onError(),console.error("WebSocket error:",n)},this.task&&clearInterval(this.task),this.task=setInterval(()=>{i.getSupportedLocos()},1e3)}send(r){this.socket.readyState===WebSocket.OPEN?this.socket.send(JSON.stringify(r)):console.warn("Cannot send message. WebSocket is not open.")}onMessage(r){console.log("Processing message:",r)}},c=new f;var i=class d{static format(r){return{type:"dccexraw",data:{raw:r}}}static setLoco(r,t,o){c.send(d.format(`<t ${r} ${t} ${o}>`))}static getLocoInfo(r){c.send(d.format(`<t ${r}>`))}static setLocoFunction(r,t,o){c.send(d.format(`<F ${r} ${t} ${o?1:0}>`))}static emergencyStop(){c.send(d.format("<!>"))}static getSupportedLocos(){c.send(d.format("<c>"))}static setTurnout(r){c.send(d.format(`<T ${r.address} ${r.isClosed?0:1}>`))}static getAllTurnout(){c.send(d.format("<T>"))}};var h=class extends HTMLElement{constructor(){super();this.locomotives=[];this.buttons={};this._data="";this.turnouts=[];this._powerInfo={current:0,emergencyStop:!1,info:0,programmingModeActive:!1,shortCircuit:!1,trackVoltageOn:!1};let t=this.attachShadow({mode:"open"});t.innerHTML=`
             <style>
                 @import url("bootstrap.min.css");
                 
@@ -233,8 +125,8 @@
                     position: fixed;
                     top: 0;
                     left: 0;
-                    width: 100%;
-                    height: 100%;
+                    width: 100vw;
+                    height: 100vh;
                     background: rgba(0, 0, 0, 0.6);
                     justify-content: center;
                     align-items: center;
@@ -247,11 +139,13 @@
                 /* Modal tartalom */
                 .modal-content {
                     width: 80%;
+                    height: 460px;
                     background: white;
                     padding: 10px;
                     border-radius: 10px;
                     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
                     text-align: center;
+                    overflow-y: auto
                 }
 
                 /* Mozdony lista */
@@ -294,7 +188,7 @@
                 }
 
                 #modalContent {
-                    height: 70%;
+                    height: 100%;
                     overflow: auto;
                     border-radius: 5px;
                     border: 1px solid #ddd;
@@ -430,119 +324,9 @@
                     <button id="closeModal" style="border-radius: 8px">CLOSE</button>
                 </div>
             </div>
-        `;
-      this.locoImage = shadow.getElementById("locoImage");
-      this.locoName = shadow.getElementById("locoName");
-      this.locoInfoSpeedElement = shadow.getElementById("locoInfoSpeed");
-      this.locoInfoPowerElement = shadow.getElementById("locoInfoPower");
-      this.locoModeInfoElement = shadow.getElementById("locoModeInfo");
-      this.locoImage.addEventListener("click", () => this.openLocoModal());
-      shadow.getElementById("closeModal")?.addEventListener("click", () => this.closeModal());
-      this.btnPower = shadow.getElementById("btnPower");
-      this.btnPower.onclick = (e) => {
-        this.openPowerModal();
-      };
-      this.btnEmergency = shadow.getElementById("btnEmergency");
-      this.btnEmergency.onclick = (e) => {
-        Api.emergencyStop();
-      };
-      this.btnReverse = shadow.getElementById("btnReverse");
-      this.btnReverse.onclick = (e) => {
-        if (this.currentLoco) {
-          Api.setLoco(this.currentLoco.address, this.currentLoco.speed, 0 /* reverse */);
-        }
-      };
-      this.btnStop = shadow.getElementById("btnStop");
-      this.btnStop.onclick = (e) => {
-        if (this.currentLoco) {
-          Api.setLoco(this.currentLoco.address, 0, this.currentLoco.direction);
-        }
-      };
-      this.btnForward = shadow.getElementById("btnForward");
-      this.btnForward.onclick = (e) => {
-        if (this.currentLoco) {
-          Api.setLoco(this.currentLoco.address, this.currentLoco.speed, 1 /* forward */);
-        }
-      };
-      this.btnSpeed5 = shadow.getElementById("btnSpeed5");
-      this.btnSpeed5.onclick = (e) => {
-        if (this.currentLoco) {
-          Api.setLoco(this.currentLoco.address, this.getSpeedPercentage(5), this.currentLoco.direction);
-        }
-      };
-      this.btnSpeed10 = shadow.getElementById("btnSpeed10");
-      this.btnSpeed10.onclick = (e) => {
-        if (this.currentLoco) {
-          Api.setLoco(this.currentLoco.address, this.getSpeedPercentage(10), this.currentLoco.direction);
-        }
-      };
-      this.btnSpeed20 = shadow.getElementById("btnSpeed20");
-      this.btnSpeed20.onclick = (e) => {
-        if (this.currentLoco) {
-          Api.setLoco(this.currentLoco.address, this.getSpeedPercentage(20), this.currentLoco.direction);
-        }
-      };
-      this.btnSpeed40 = shadow.getElementById("btnSpeed40");
-      this.btnSpeed40.onclick = (e) => {
-        if (this.currentLoco) {
-          Api.setLoco(this.currentLoco.address, this.getSpeedPercentage(40), this.currentLoco.direction);
-        }
-      };
-      this.btnSpeed80 = shadow.getElementById("btnSpeed80");
-      this.btnSpeed80.onclick = (e) => {
-        if (this.currentLoco) {
-          Api.setLoco(this.currentLoco.address, this.getSpeedPercentage(80), this.currentLoco.direction);
-        }
-      };
-      this.btnSpeed100 = shadow.getElementById("btnSpeed100");
-      this.btnSpeed100.onclick = (e) => {
-        if (this.currentLoco) {
-          Api.setLoco(this.currentLoco.address, this.getSpeedPercentage(100), this.currentLoco.direction);
-        }
-      };
-      this.fnButtons = shadow.getElementById("fnButtons");
-      this.modal = shadow.getElementById("modal");
-      this.modal.onclick = (e) => {
-        if (e.target == this.modal) {
-          this.closeModal();
-        }
-      };
-      const btnTurnouts = shadow.getElementById("btnTurnouts");
-      btnTurnouts.onclick = (e) => {
-        this.openTurnoutsModal();
-      };
-      for (var i = 0; i <= 28; i++) {
-        const btn = document.createElement("button");
-        this.buttons[i] = btn;
-        btn.fn = i;
-        btn.function = void 0;
-        btn.onpointerdown = (e) => {
-          if (this.currentLoco) {
-            if (btn.function) {
-              if (btn.function.momentary) {
-                Api.setLocoFunction(this.currentLoco.address, btn.fn, true);
-              } else {
-                Api.setLocoFunction(this.currentLoco.address, btn.fn, !btn.function.isOn);
-              }
-            } else {
-              const on = (this.currentLoco.functionMap >> btn.fn & 1) > 0;
-              Api.setLocoFunction(this.currentLoco.address, btn.fn, !on);
-            }
-          }
-        };
-        btn.onpointerup = (e) => {
-          if (btn.function && btn.function.momentary && this.currentLoco) {
-            Api.setLocoFunction(this.currentLoco.address, btn.fn, false);
-          }
-        };
-        btn.innerHTML = `F${i}`;
-        this.fnButtons.appendChild(btn);
-      }
-    }
-    getSvgTurnoutClosed(id, isLeft) {
-      return `
- <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
-   <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ""} >
+        `,this.locoImage=t.getElementById("locoImage"),this.locoName=t.getElementById("locoName"),this.locoInfoSpeedElement=t.getElementById("locoInfoSpeed"),this.locoInfoPowerElement=t.getElementById("locoInfoPower"),this.locoModeInfoElement=t.getElementById("locoModeInfo"),this.locoImage.addEventListener("click",()=>this.openLocoModal()),t.getElementById("closeModal")?.addEventListener("click",()=>this.closeModal()),this.btnPower=t.getElementById("btnPower"),this.btnPower.onclick=e=>{this.openPowerModal()},this.btnEmergency=t.getElementById("btnEmergency"),this.btnEmergency.onclick=e=>{i.emergencyStop()},this.btnReverse=t.getElementById("btnReverse"),this.btnReverse.onclick=e=>{this.currentLoco&&i.setLoco(this.currentLoco.address,this.currentLoco.speed,0)},this.btnStop=t.getElementById("btnStop"),this.btnStop.onclick=e=>{this.currentLoco&&i.setLoco(this.currentLoco.address,0,this.currentLoco.direction)},this.btnForward=t.getElementById("btnForward"),this.btnForward.onclick=e=>{this.currentLoco&&i.setLoco(this.currentLoco.address,this.currentLoco.speed,1)},this.btnSpeed5=t.getElementById("btnSpeed5"),this.btnSpeed5.onclick=e=>{this.currentLoco&&i.setLoco(this.currentLoco.address,this.getSpeedPercentage(5),this.currentLoco.direction)},this.btnSpeed10=t.getElementById("btnSpeed10"),this.btnSpeed10.onclick=e=>{this.currentLoco&&i.setLoco(this.currentLoco.address,this.getSpeedPercentage(10),this.currentLoco.direction)},this.btnSpeed20=t.getElementById("btnSpeed20"),this.btnSpeed20.onclick=e=>{this.currentLoco&&i.setLoco(this.currentLoco.address,this.getSpeedPercentage(20),this.currentLoco.direction)},this.btnSpeed40=t.getElementById("btnSpeed40"),this.btnSpeed40.onclick=e=>{this.currentLoco&&i.setLoco(this.currentLoco.address,this.getSpeedPercentage(40),this.currentLoco.direction)},this.btnSpeed80=t.getElementById("btnSpeed80"),this.btnSpeed80.onclick=e=>{this.currentLoco&&i.setLoco(this.currentLoco.address,this.getSpeedPercentage(80),this.currentLoco.direction)},this.btnSpeed100=t.getElementById("btnSpeed100"),this.btnSpeed100.onclick=e=>{this.currentLoco&&i.setLoco(this.currentLoco.address,this.getSpeedPercentage(100),this.currentLoco.direction)},this.fnButtons=t.getElementById("fnButtons"),this.modal=t.getElementById("modal"),this.modal.onclick=e=>{e.target==this.modal&&this.closeModal()};let o=t.getElementById("btnTurnouts");o.onclick=e=>{this.openTurnoutsModal()};for(var n=0;n<=28;n++){let e=document.createElement("button");this.buttons[n]=e,e.fn=n,e.function=void 0,e.onpointerdown=s=>{if(this.currentLoco)if(e.function)e.function.momentary?i.setLocoFunction(this.currentLoco.address,e.fn,!0):i.setLocoFunction(this.currentLoco.address,e.fn,!e.function.isOn);else{let a=(this.currentLoco.functionMap>>e.fn&1)>0;i.setLocoFunction(this.currentLoco.address,e.fn,!a)}},e.onpointerup=s=>{e.function&&e.function.momentary&&this.currentLoco&&i.setLocoFunction(this.currentLoco.address,e.fn,!1)},e.innerHTML=`F${n}`,this.fnButtons.appendChild(e)}}getSvgTurnoutClosed(t,o){return`
+ <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${t}" xmlns="http://www.w3.org/2000/svg">
+   <g ${o?'transform="scale(-1 1)  translate(-12 0)"':""} >
      <path
         id="rect2"
         style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583"
@@ -557,12 +341,9 @@
         y="0.1322915" />
    </g>
  </svg>
- `;
-    }
-    getSvgTurnoutThrown(id, isLeft) {
-      return `
- <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
-   <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ""} >
+ `}getSvgTurnoutThrown(t,o){return`
+ <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${t}" xmlns="http://www.w3.org/2000/svg">
+   <g ${o?'transform="scale(-1 1)  translate(-12 0)"':""} >
      <rect
         style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
         id="rect1"
@@ -578,382 +359,16 @@
 
    </g>
  </svg>
- `;
-    }
-    init() {
-      this.fetchLocomotives();
-      this.fetchTurnouts();
-    }
-    connectedCallback() {
-    }
-    async fetchLocomotives() {
-      try {
-        const response = await fetch(`locos.json`);
-        const locos = await response.json();
-        this.locomotives = locos.sort((a, b) => a.address - b.address);
-        if (this.locomotives.length > 0) {
-          this.locomotives.forEach((l) => {
-            l.speed = 0;
-            l.direction = 1 /* forward */;
-            Api.getLocoInfo(l.address);
-          });
-          const i = parseInt(window.localStorage.getItem("controlPanelSelectedLocoIndex")) || 0;
-          if (i < this.locomotives.length) {
-            this.currentLoco = this.locomotives[i];
-          } else {
-            this.currentLoco = this.locomotives[0];
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching locomotives:", error);
-      }
-    }
-    async fetchTurnouts() {
-      try {
-        const response = await fetch(`turnouts.json`);
-        const turnouts = await response.json();
-        this.turnouts = turnouts.sort((a, b) => a.address - b.address);
-        Api.getAllTurnout();
-      } catch (error) {
-        console.error("Error fetching turnouts:", error);
-      }
-    }
-    openPowerModal() {
-      const modalContent = this.shadowRoot.getElementById("modalContent");
-      modalContent.innerHTML = "";
-      const div = document.createElement("div");
-      div.className = "d-grid gap-2";
-      modalContent.appendChild(div);
-      const mainOn = document.createElement("button");
-      mainOn.innerHTML = "MAIN ON";
-      mainOn.className = "btn btn-success";
-      div.appendChild(mainOn);
-      mainOn.onclick = (e) => {
-        wsClient.sendRaw("<1 MAIN>");
-      };
-      const mainOff = document.createElement("button");
-      mainOff.innerHTML = "MAIN OFF";
-      mainOff.className = "btn btn-secondary";
-      div.appendChild(mainOff);
-      mainOff.onclick = (e) => {
-        wsClient.sendRaw("<0>");
-      };
-      this.modal.style.display = "flex";
-    }
-    openLocoModal() {
-      const modalContent = this.shadowRoot.getElementById("modalContent");
-      modalContent.innerHTML = "";
-      this.locomotives.forEach((loco) => {
-        const locoItem = document.createElement("div");
-        locoItem.classList.add("loco-item");
-        locoItem.innerHTML = `
+ `}init(){this.fetchLocomotives(),this.fetchTurnouts()}connectedCallback(){}async fetchLocomotives(){try{let o=await(await fetch("locos.json")).json();if(this.locomotives=o.sort((n,e)=>n.address-e.address),this.locomotives.length>0){this.locomotives.forEach(e=>{e.speed=0,e.direction=1,i.getLocoInfo(e.address)});let n=parseInt(window.localStorage.getItem("controlPanelSelectedLocoIndex"))||0;n<this.locomotives.length?this.currentLoco=this.locomotives[n]:this.currentLoco=this.locomotives[0]}}catch(t){console.error("Error fetching locomotives:",t)}}async fetchTurnouts(){try{let o=await(await fetch("turnouts.json")).json();this.turnouts=o.sort((n,e)=>n.address-e.address),i.getAllTurnout()}catch(t){console.error("Error fetching turnouts:",t)}}openPowerModal(){let t=this.shadowRoot.getElementById("modalContent");t.innerHTML="";let o=document.createElement("div");o.className="d-grid gap-2",t.appendChild(o);let n=document.createElement("button");n.innerHTML="MAIN ON",n.className="btn btn-success",o.appendChild(n),n.onclick=u=>{c.sendRaw("<1 MAIN>")};let e=document.createElement("button");e.innerHTML="MAIN OFF",e.className="btn btn-secondary",o.appendChild(e),e.onclick=u=>{c.sendRaw("<0>")};let s=document.createElement("button");s.innerHTML="JOIN",s.className="btn btn-success",o.appendChild(s),s.onclick=u=>{c.sendRaw("<1 JOIN>")};let a=document.createElement("button");a.innerHTML="UNJOIN",a.className="btn btn-secondary",o.appendChild(a),a.onclick=u=>{c.sendRaw("<0 PROG>")},this.modal.style.display="flex"}openLocoModal(){let t=this.shadowRoot.getElementById("modalContent");t.innerHTML="",this.locomotives.forEach(o=>{let n=document.createElement("div");n.classList.add("loco-item"),n.innerHTML=`
                 <div style="justify-content: center; align-items: center">
-                    <img src="${loco.imageUrl}" alt="${loco.name}">
+                    <img src="${o.imageUrl}" alt="${o.name}">
                 </div>
-                <div>#${loco.address} ${loco.name}</div>
-            `;
-        if (loco.id === this.currentLoco?.id) {
-          locoItem.classList.add("selected");
-        }
-        locoItem.addEventListener("click", () => {
-          const i = this.locomotives.findIndex((l) => {
-            return l.address == loco.address;
-          });
-          window.localStorage.setItem("controlPanelSelectedLocoIndex", i.toString());
-          this.currentLoco = loco;
-          this.closeModal();
-        });
-        modalContent.appendChild(locoItem);
-      });
-      this.modal.style.display = "flex";
-    }
-    openTurnoutsModal() {
-      const modalContent = this.shadowRoot.getElementById("modalContent");
-      modalContent.innerHTML = "";
-      this.turnouts.forEach((turnout) => {
-        const tItem = document.createElement("div");
-        tItem.classList.add("loco-item");
-        const svg = turnout.isClosed ? this.getSvgTurnoutClosed(turnout.address, turnout.isLeft) : this.getSvgTurnoutThrown(turnout.address, turnout.isLeft);
-        tItem.innerHTML = `
-                <div id="svg-turnout-${turnout.address.toString()}"  style="height: 60px; width: 60px; display: flex; justify-content: center; align-items: center; background-color: gray">
-                    ${svg}
+                <div>#${o.address} ${o.name}</div>
+            `,o.id===this.currentLoco?.id&&n.classList.add("selected"),n.addEventListener("click",()=>{let e=this.locomotives.findIndex(s=>s.address==o.address);window.localStorage.setItem("controlPanelSelectedLocoIndex",e.toString()),this.currentLoco=o,this.closeModal()}),t.appendChild(n)}),this.modal.style.display="flex"}openTurnoutsModal(){let t=this.shadowRoot.getElementById("modalContent");t.innerHTML="",this.turnouts.forEach(o=>{let n=document.createElement("div");n.classList.add("loco-item");let e=o.isClosed?this.getSvgTurnoutClosed(o.address,o.isLeft):this.getSvgTurnoutThrown(o.address,o.isLeft);n.innerHTML=`
+                <div id="svg-turnout-${o.address.toString()}"  style="height: 60px; width: 60px; display: flex; justify-content: center; align-items: center; background-color: gray">
+                    ${e}
                 </div>
-                <div>#${turnout.address} ${turnout.name}</div>
-            `;
-        tItem.addEventListener("click", () => {
-          const to = this.turnouts.find((t) => {
-            return turnout.address == t.address;
-          });
-          if (to) {
-            to.isClosed = !to.isClosed;
-            Api.setTurnout(to);
-            const svgContainer = this.shadowRoot.getElementById(`svg-turnout-${to.address}`);
-            if (svgContainer) {
-              svgContainer.innerHTML = to.isClosed != to.isInverted ? this.getSvgTurnoutClosed(to.address, to.isLeft) : this.getSvgTurnoutThrown(to.address, to.isLeft);
-            }
-          }
-        });
-        modalContent.appendChild(tItem);
-      });
-      this.modal.style.display = "flex";
-    }
-    closeModal() {
-      this.modal.style.display = "none";
-    }
-    renderLocoFunctions() {
-      this.locoImage.src = this.currentLoco.imageUrl;
-      this.locoName.innerText = `#${this.currentLoco.address} ${this.currentLoco.name}`;
-      for (var i = 0; i <= 28; i++) {
-        this.buttons[i].className = "";
-        this.buttons[i].function = void 0;
-        this.buttons[i].innerHTML = `F${i}`;
-      }
-      this.currentLoco?.functions?.forEach((f) => {
-        this.buttons[f.id].className = "fnbutton";
-        this.buttons[f.id].innerHTML = `F${f.id}<br>${f.name}`;
-        this.buttons[f.id].function = f;
-      });
-      this.updateUI();
-    }
-    get currentLoco() {
-      return this._currentLoco;
-    }
-    set currentLoco(v) {
-      this._currentLoco = v;
-      this.renderLocoFunctions();
-    }
-    getSpeedPercentage(perc, maxSpeed = 126) {
-      return Math.round(maxSpeed * (perc / 100));
-    }
-    getClosestSpeedThreshold(speed, maxSpeed = 126) {
-      if (speed == 0) {
-        return 0;
-      }
-      const percentageThresholds = [5, 10, 20, 40, 80, 100];
-      const speedPercentage = speed / maxSpeed * 100;
-      return percentageThresholds.reduce(
-        (closest, current) => Math.abs(speedPercentage - current) < Math.abs(speedPercentage - closest) ? current : closest
-      );
-    }
-    calculateRealSpeed(modelSpeed) {
-      const scaleFactor = 87;
-      const realSpeed = modelSpeed * scaleFactor * 3600 / 1e5;
-      return Math.round(realSpeed * 10) / 10;
-    }
-    calculateRealTrainSpeed(dccSpeed, realMaxSpeed = 120) {
-      if (dccSpeed < 0 || dccSpeed > 127) {
-        throw new Error("A DCC sebess\xE9gnek 0 \xE9s 127 k\xF6z\xF6tt kell lennie.");
-      }
-      const realSpeed = dccSpeed / 127 * realMaxSpeed;
-      return Math.round(realSpeed * 10) / 10;
-    }
-    updateUI() {
-      if (this.currentLoco) {
-        const speed = this.getClosestSpeedThreshold(this.currentLoco.speed);
-        this.btnReverse.style.backgroundColor = this.currentLoco.direction == 0 /* reverse */ ? "lime" : "gray";
-        this.btnStop.style.backgroundColor = this.currentLoco.speed == 0 ? "orange" : "gray";
-        this.btnForward.style.backgroundColor = this.currentLoco.direction == 1 /* forward */ ? "lime" : "gray";
-        this.btnSpeed5.style.backgroundColor = speed == 5 ? "lime" : "gray";
-        this.btnSpeed10.style.backgroundColor = speed == 10 ? "lime" : "gray";
-        this.btnSpeed20.style.backgroundColor = speed == 20 ? "lime" : "gray";
-        this.btnSpeed40.style.backgroundColor = speed == 40 ? "lime" : "gray";
-        this.btnSpeed80.style.backgroundColor = speed == 80 ? "lime" : "gray";
-        this.btnSpeed100.style.backgroundColor = speed == 100 ? "lime" : "gray";
-        this.locoInfoSpeedElement.innerHTML = this.currentLoco.speed.toString();
-        for (var i = 0; i <= 28; i++) {
-          var on = (this.currentLoco.functionMap >> i & 1) == 1;
-          const fn = this.currentLoco.functions.find((f) => f.id == i);
-          if (fn) {
-            fn.isOn = on;
-          }
-          if (on) {
-            this.buttons[i].classList.add("on");
-          } else {
-            this.buttons[i].classList.remove("on");
-          }
-        }
-      } else {
-        this.locoInfoSpeedElement.innerHTML = "Unknown Loco";
-      }
-    }
-    processMessage(msg) {
-      if (msg.type == "rawInfo" /* rawInfo */) {
-        const raw = msg.data.raw;
-        for (var i = 0; i < raw.length; i++) {
-          var c = raw[i];
-          if (c == ">") {
-            this.parse(this._data);
-            this._data = "";
-          } else if (c == "<" || c == "\n" || c == "\r") {
-            this._data = "";
-            continue;
-          } else {
-            this._data += c;
-          }
-        }
-      }
-      if (msg.type == "ack" /* ack */) {
-        switch (msg.data) {
-          case "<!>":
-            this.powerInfo.emergencyStop = true;
-            this.powerInfo = this.powerInfo;
-            break;
-        }
-      }
-    }
-    parse(data) {
-      if (data == "# 50") {
-        return;
-      }
-      if (data.startsWith("c CurrentMAIN")) {
-        const params = data.split(" ");
-        this.powerInfo.current = parseInt(params[2]);
-        this.locoInfoPowerElement.innerHTML = this.powerInfo.current.toString();
-      } else if (data.startsWith("p1")) {
-        console.log(data);
-        const params = data.split(" ");
-        this.powerInfo.info = 1;
-        if (params[1] == "MAIN" || params[1] == "A") {
-          {
-            this.powerInfo.trackVoltageOn = true;
-          }
-        } else if (params[1] == "PROG" || params[1] == "B") {
-          this.powerInfo.programmingModeActive = true;
-        }
-        this.powerInfo = this.powerInfo;
-      } else if (data.startsWith("p0")) {
-        console.log(data);
-        const params = data.split(" ");
-        this.powerInfo.info = 0;
-        if (params.length == 2) {
-          if (params[1] == "MAIN" || params[1] == "A") {
-            this.powerInfo.trackVoltageOn = false;
-          } else if (params[1] == "PROG" || params[1] == "B") {
-            this.powerInfo.programmingModeActive = false;
-          }
-          this.powerInfo = this.powerInfo;
-        } else {
-          this.powerInfo.trackVoltageOn = false;
-          this.powerInfo.programmingModeActive = false;
-        }
-      } else if (data.startsWith("Q ")) {
-      } else if (data.startsWith("q ")) {
-      } else if (data.startsWith("l")) {
-        console.log(data);
-        var items = data.split(" ");
-        var address = parseInt(items[1]);
-        var speedByte = parseInt(items[3]);
-        var funcMap = parseInt(items[4]);
-        var direction = 1 /* forward */;
-        {
-          var newSpeed = 0;
-          if (speedByte >= 2 && speedByte <= 127) {
-            newSpeed = speedByte - 1;
-            direction = 0 /* reverse */;
-          } else if (speedByte >= 130 && speedByte <= 255) {
-            newSpeed = speedByte - 129;
-            direction = 1 /* forward */;
-          } else if (speedByte == 0) {
-            newSpeed = 0;
-            direction = 0 /* reverse */;
-          } else if (speedByte == 128) {
-            newSpeed = 0;
-            direction = 1 /* forward */;
-          } else {
-          }
-          this.powerInfo.emergencyStop = speedByte == 129;
-          this.powerInfo = this.powerInfo;
-          const loco = this.locomotives.find((l) => l.address == address);
-          if (loco) {
-            loco.speed = newSpeed;
-            loco.direction = direction;
-            loco.functionMap = funcMap;
-            if (this.currentLoco && this.currentLoco.address == loco.address) {
-              this.updateUI();
-            }
-          }
-        }
-      } else if (data.startsWith("H")) {
-        console.log(data);
-        var items = data.split(" ");
-        var address = parseInt(items[1]);
-        var c = parseInt(items[2]) == 0;
-        const turnout = this.turnouts.find((t) => t.address == address);
-        if (turnout) {
-          turnout.isClosed = c != turnout.isInverted;
-        }
-      } else if (data.startsWith("jT")) {
-      } else if (data.startsWith("Y")) {
-      } else if (data == "X") {
-        console.log("(<X>) UnsuccessfulOperation !");
-      } else {
-      }
-    }
-    get powerInfo() {
-      return this._powerInfo;
-    }
-    set powerInfo(pi) {
-      this._powerInfo = pi;
-      if (pi.trackVoltageOn) {
-        this.btnPower.style.backgroundColor = "green";
-      } else {
-        this.btnPower.style.backgroundColor = "#555555";
-      }
-      if (pi.emergencyStop) {
-        this.btnEmergency.style.backgroundColor = "red";
-      } else {
-        this.btnEmergency.style.backgroundColor = "#555555";
-      }
-    }
-    // private _powerInfo : iPowerInfo | undefined;
-    // public get powerInfo() : iPowerInfo | undefined {
-    //     return this._powerInfo;
-    // }
-    // public set powerInfo(v : iPowerInfo) {
-    //     this._powerInfo = v;
-    // }
-  };
-  customElements.define("loco-panel", LocoPanel);
-
-  // src/app.ts
-  console.log(LocoPanel);
-  console.log(Api);
-  var App = class {
-    constructor() {
-      this.config = {
-        startup: {
-          power: "<1 MAIN>",
-          init: "<s>\n<T 1 DCC 1>"
-        }
-      };
-      this.cp = document.createElement("loco-panel");
-      document.body.appendChild(this.cp);
-      wsClient.onOpen = () => {
-        wsClient.sendRaw(this.config.startup.power);
-        wsClient.sendRaw(this.config.startup.init);
-      };
-      wsClient.onClosed = () => {
-      };
-      wsClient.onMessage = (msg) => {
-        this.cp.processMessage(msg);
-      };
-      fetch("config.json").then((res) => {
-        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        return res.json();
-      }).then((json) => {
-        this.config = json;
-      }).catch((err) => console.error("Hiba a config.json beolvas\xE1sakor:", err)).finally(() => {
-        wsClient.connect();
-      });
-      this.cp.init();
-    }
-    sendRaw(raw) {
-      const json = {
-        type: "dccexraw",
-        data: { raw }
-      };
-      wsClient.socket.send(JSON.stringify(json));
-    }
-  };
-  var app = new App();
-})();
+                <div>#${o.address} ${o.name}</div>
+            `,n.addEventListener("click",()=>{let s=this.turnouts.find(a=>o.address==a.address);if(s){s.isClosed=!s.isClosed,i.setTurnout(s);let a=this.shadowRoot.getElementById(`svg-turnout-${s.address}`);a&&(a.innerHTML=s.isClosed!=s.isInverted?this.getSvgTurnoutClosed(s.address,s.isLeft):this.getSvgTurnoutThrown(s.address,s.isLeft))}}),t.appendChild(n)}),this.modal.style.display="flex"}closeModal(){this.modal.style.display="none"}renderLocoFunctions(){this.locoImage.src=this.currentLoco.imageUrl,this.locoName.innerText=`#${this.currentLoco.address} ${this.currentLoco.name}`;for(var t=0;t<=28;t++)this.buttons[t].className="",this.buttons[t].function=void 0,this.buttons[t].innerHTML=`F${t}`;this.currentLoco?.functions?.forEach(o=>{this.buttons[o.id].className="fnbutton",this.buttons[o.id].innerHTML=`F${o.id}<br>${o.name}`,this.buttons[o.id].function=o}),this.updateUI()}get currentLoco(){return this._currentLoco}set currentLoco(t){this._currentLoco=t,this.renderLocoFunctions()}getSpeedPercentage(t,o=126){return Math.round(o*(t/100))}getClosestSpeedThreshold(t,o=126){if(t==0)return 0;let n=[5,10,20,40,80,100],e=t/o*100;return n.reduce((s,a)=>Math.abs(e-a)<Math.abs(e-s)?a:s)}calculateRealSpeed(t){let n=t*87*3600/1e5;return Math.round(n*10)/10}calculateRealTrainSpeed(t,o=120){if(t<0||t>127)throw new Error("A DCC sebess\xE9gnek 0 \xE9s 127 k\xF6z\xF6tt kell lennie.");let n=t/127*o;return Math.round(n*10)/10}updateUI(){if(this.currentLoco){let n=this.getClosestSpeedThreshold(this.currentLoco.speed);this.btnReverse.style.backgroundColor=this.currentLoco.direction==0?"lime":"gray",this.btnStop.style.backgroundColor=this.currentLoco.speed==0?"orange":"gray",this.btnForward.style.backgroundColor=this.currentLoco.direction==1?"lime":"gray",this.btnSpeed5.style.backgroundColor=n==5?"lime":"gray",this.btnSpeed10.style.backgroundColor=n==10?"lime":"gray",this.btnSpeed20.style.backgroundColor=n==20?"lime":"gray",this.btnSpeed40.style.backgroundColor=n==40?"lime":"gray",this.btnSpeed80.style.backgroundColor=n==80?"lime":"gray",this.btnSpeed100.style.backgroundColor=n==100?"lime":"gray",this.locoInfoSpeedElement.innerHTML=this.currentLoco.speed.toString();for(var t=0;t<=28;t++){var o=(this.currentLoco.functionMap>>t&1)==1;let e=this.currentLoco.functions.find(s=>s.id==t);e&&(e.isOn=o),o?this.buttons[t].classList.add("on"):this.buttons[t].classList.remove("on")}}else this.locoInfoSpeedElement.innerHTML="Unknown Loco"}processMessage(t){if(t.type=="rawInfo"){let e=t.data.raw;for(var o=0;o<e.length;o++){var n=e[o];if(n==">")this.parse(this._data),this._data="";else if(n=="<"||n==`
+`||n=="\r"){this._data="";continue}else this._data+=n}}if(t.type=="ack")switch(t.data){case"<!>":this.powerInfo.emergencyStop=!0,this.powerInfo=this.powerInfo;break}}parse(t){if(t!="# 50"){if(t.startsWith("c CurrentMAIN")){let l=t.split(" ");this.powerInfo.current=parseInt(l[2]),this.locoInfoPowerElement.innerHTML=this.powerInfo.current.toString()}else if(t.startsWith("p1")){console.log(t);let l=t.split(" ");this.powerInfo.info=1,l[1]=="MAIN"||l[1]=="A"?this.powerInfo.trackVoltageOn=!0:(l[1]=="PROG"||l[1]=="B")&&(this.powerInfo.programmingModeActive=!0),this.powerInfo=this.powerInfo}else if(t.startsWith("p0")){console.log(t);let l=t.split(" ");this.powerInfo.info=0,l.length==2?(l[1]=="MAIN"||l[1]=="A"?this.powerInfo.trackVoltageOn=!1:(l[1]=="PROG"||l[1]=="B")&&(this.powerInfo.programmingModeActive=!1),this.powerInfo=this.powerInfo):(this.powerInfo.trackVoltageOn=!1,this.powerInfo.programmingModeActive=!1)}else if(!t.startsWith("Q ")){if(!t.startsWith("q "))if(t.startsWith("l")){console.log(t);var o=t.split(" "),n=parseInt(o[1]),e=parseInt(o[3]),s=parseInt(o[4]),a=1;{var u=0;e>=2&&e<=127?(u=e-1,a=0):e>=130&&e<=255?(u=e-129,a=1):e==0?(u=0,a=0):e==128&&(u=0,a=1),this.powerInfo.emergencyStop=e==129,this.powerInfo=this.powerInfo;let l=this.locomotives.find(w=>w.address==n);l&&(l.speed=u,l.direction=a,l.functionMap=s,this.currentLoco&&this.currentLoco.address==l.address&&this.updateUI())}}else if(t.startsWith("H")){console.log(t);var o=t.split(" "),n=parseInt(o[1]),m=parseInt(o[2])==0;let g=this.turnouts.find(L=>L.address==n);g&&(g.isClosed=m!=g.isInverted)}else t.startsWith("jT")||t.startsWith("Y")||t=="X"&&console.log("(<X>) UnsuccessfulOperation !")}}}get powerInfo(){return this._powerInfo}set powerInfo(t){this._powerInfo=t,t.trackVoltageOn?this.btnPower.style.backgroundColor="green":this.btnPower.style.backgroundColor="#555555",t.emergencyStop?this.btnEmergency.style.backgroundColor="red":this.btnEmergency.style.backgroundColor="#555555"}};customElements.define("loco-panel",h);console.log(h);console.log(i);var p=class{constructor(){this.config={startup:{power:"<1 MAIN>",init:`<s>
+<T 1 DCC 1>`}};this.cp=document.createElement("loco-panel"),document.body.appendChild(this.cp),c.onOpen=()=>{c.sendRaw(this.config.startup.power),c.sendRaw(this.config.startup.init)},c.onClosed=()=>{},c.onMessage=r=>{this.cp.processMessage(r)},fetch("config.json").then(r=>{if(!r.ok)throw new Error(`HTTP error ${r.status}`);return r.json()}).then(r=>{this.config=r}).catch(r=>console.error("Hiba a config.json beolvas\xE1sakor:",r)).finally(()=>{c.connect()}),this.cp.init()}sendRaw(r){let t={type:"dccexraw",data:{raw:r}};c.socket.send(JSON.stringify(t))}},V=new p;})();
