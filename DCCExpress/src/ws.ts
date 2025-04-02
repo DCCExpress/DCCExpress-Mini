@@ -16,7 +16,8 @@ export class WebSocketClient {
     onOpen?: () => void;
     onError?: () => void;
     onClosed?: () => void;
-    task?: number;
+    task: NodeJS.Timeout | undefined;
+    
     
 
     sendRaw(raw: string) {
