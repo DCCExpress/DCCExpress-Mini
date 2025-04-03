@@ -64,7 +64,6 @@ export class App {
             })
             .then((json) => {
                 this.config = json;
-                // TODO: használat
             })
             .catch((err) => console.error("Hiba a config.json beolvasásakor:", err))
             .finally(() => {

@@ -1,7 +1,9 @@
 import { Api } from "./api";
 import { ApiCommands, DccDirections, FunctionButton, iData, iLocomotive, iPowerInfo, iTurnout } from "./dcc";
+import { Turnout, TurnoutRightElement } from "./turnout";
 import { iDccRaw, wsClient } from "./ws";
 
+console.log(TurnoutRightElement)
 
 enum Colors {
     secondary = "#222222"
@@ -9,48 +11,48 @@ enum Colors {
 
 export class LocoPanel extends HTMLElement {
 
-    getSvgTurnoutClosed(id: number, isLeft: boolean) {
-        return `
- <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
-   <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
-     <path
-        id="rect2"
-        style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583"
-        d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
-        />
-     <rect
-        style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
-        id="rect1"
-        width="1.8358474"
-        height="10.451042"
-        x="4.121172"
-        y="0.1322915" />
-   </g>
- </svg>
- `
-     }
+//     getSvgTurnoutClosed(id: number, isLeft: boolean) {
+//         return `
+//  <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
+//    <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
+//      <path
+//         id="rect2"
+//         style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583"
+//         d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
+//         />
+//      <rect
+//         style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
+//         id="rect1"
+//         width="1.8358474"
+//         height="10.451042"
+//         x="4.121172"
+//         y="0.1322915" />
+//    </g>
+//  </svg>
+//  `
+//      }
 
-     getSvgTurnoutThrown(id: number, isLeft: boolean) {
-        return `
- <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
-   <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
-     <rect
-        style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
-        id="rect1"
-        width="1.8358474"
-        height="10.451042"
-        x="4.121172"
-        y="0.1322915" />
-     <path
-        id="rect2"
-        style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583"
-        d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
-        />
+//      getSvgTurnoutThrown(id: number, isLeft: boolean) {
+//         return `
+//  <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
+//    <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
+//      <rect
+//         style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
+//         id="rect1"
+//         width="1.8358474"
+//         height="10.451042"
+//         x="4.121172"
+//         y="0.1322915" />
+//      <path
+//         id="rect2"
+//         style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583"
+//         d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
+//         />
 
-   </g>
- </svg>
- `
-     }     
+//    </g>
+//  </svg>
+//  `
+//      }     
     locomotives: iLocomotive[] = [];
     locoImage: HTMLImageElement;
     btnReverse: HTMLButtonElement;
@@ -700,34 +702,29 @@ export class LocoPanel extends HTMLElement {
 
         this.turnouts.forEach((turnout) => {
             const tItem = document.createElement("div");
-            tItem.classList.add("loco-item");
-            const svg = turnout.isClosed ? this.getSvgTurnoutClosed(turnout.address, turnout.isLeft) :  this.getSvgTurnoutThrown(turnout.address, turnout.isLeft)
-            tItem.innerHTML = `
-                <div id="svg-turnout-${turnout.address.toString()}"  style="height: 60px; width: 60px; display: flex; justify-content: center; align-items: center; background-color: gray">
-                    ${svg}
-                </div>
-                <div>#${turnout.address} ${turnout.name}</div>
-            `;
+            tItem.classList.add("turnout-item");
 
-            tItem.addEventListener("click", () => {
+            const elem = turnout.isLeft ? document.createElement("turnout-left-element") as Turnout:  document.createElement("turnout-right-element") as Turnout
+            elem.id = `turnout-${turnout.address}`
+            tItem.appendChild(elem)
+            elem.addEventListener("click", () => {
                 const to = this.turnouts.find((t) => {
                     return turnout.address == t.address
                 })
-                if(to) {
-
+                if(to) 
+                    {
                     to.isClosed = !to.isClosed
                     Api.setTurnout(to)
-
-                    const svgContainer = this.shadowRoot!.getElementById(`svg-turnout-${to.address}`);
-                    if (svgContainer) {
-                        svgContainer.innerHTML = to.isClosed != to.isInverted
-                          ? this.getSvgTurnoutClosed(to.address, to.isLeft)
-                          : this.getSvgTurnoutThrown(to.address, to.isLeft);
+                    const elem = this.shadowRoot!.getElementById(`turnout-${to.address}`) as Turnout;
+                    if (elem) {
+                        elem.isClosed = to.isClosed != to.isInverted
                     }                    
-
-                    
                 }
             })
+            const title = document.createElement("div")
+            title.innerHTML = `<b>#${turnout.address} ${turnout.name}</b>`
+            tItem.appendChild(title)
+
             modalContent.appendChild(tItem);
         })
 

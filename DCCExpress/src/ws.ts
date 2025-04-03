@@ -91,10 +91,10 @@ export class WebSocketClient {
     }
 
     send(data: iData): void {
-        if (this.socket.readyState === WebSocket.OPEN) {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(data));
         } else {
-            console.warn("Cannot send message. WebSocket is not open.");
+            console.log("Cannot send message. WebSocket is not open.");
         }
     }
 
