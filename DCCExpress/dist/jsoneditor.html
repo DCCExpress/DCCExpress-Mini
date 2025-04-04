@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,14 +16,15 @@
       line-height: 1.4;
       border-radius: 0.25rem;
     }
-  
+
     #jsonArea.console-style:focus {
       outline: none;
       border-color: #0d6efd;
-      box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25);
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
     }
   </style>
 </head>
+
 <body class="p-4">
   <div class="container">
     <h1 class="mb-4">📄 JSON Editor</h1>
@@ -49,8 +51,8 @@
     let currentFile = '';
     let baseUrl = ""
 
-    if(location.hostname == '127.0.0.1')  {
-        baseUrl = "http://192.168.1.143"
+    if (location.hostname == '127.0.0.1') {
+      baseUrl = "http://192.168.1.143"
     }
 
     async function loadFile(filename) {
@@ -68,21 +70,29 @@
     async function saveFile() {
       try {
         const content = document.getElementById("jsonArea").value;
-        const formData = new FormData();
-        const blob = new Blob([content], { type: 'application/json' });
-        formData.append("upload", blob, currentFile);
+        JSON.parse(content)
+        try {
 
-        const response = await fetch(`${baseUrl}/upload`, {
-          method: "POST",
-          body: formData,
-        });
+          const formData = new FormData();
+          const blob = new Blob([content], { type: 'application/json' });
+          formData.append("upload", blob, currentFile);
 
-        if (!response.ok) throw new Error("Failed to upload");
-        alert("Saved successfully!");
-      } catch (err) {
-        alert("Save failed: " + err.message);
+          const response = await fetch(`${baseUrl}/upload`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) throw new Error("Failed to upload");
+          alert("Saved successfully!");
+        } catch (err) {
+          alert("Save failed: " + err.message);
+        }
+      }
+      catch (e) {
+        alert("Error in JSON: " + e.message);
       }
     }
   </script>
 </body>
+
 </html>
