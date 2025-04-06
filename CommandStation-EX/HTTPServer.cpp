@@ -10,7 +10,7 @@ AsyncWebSocket ws("/ws");
 
 void dccParseRaw(const String &raw)
 {
-  //Serial.println("RAW: " + raw);
+  // Serial.println("RAW: " + raw);
   const char *cmd = raw.c_str();
   DCCEXParser::parse(cmd);
 }
@@ -101,28 +101,25 @@ void setupHTTPServer()
                 AwsEventType type, void *arg, uint8_t *data, size_t len)
              {
                 if (type == WS_EVT_CONNECT) {
-                Serial.println("WebSocket connect");
+                  Serial.println("WebSocket connect");
                 } else if (type == WS_EVT_DISCONNECT) {
-                Serial.println("WebSocket disconnect");
+                  Serial.println("WebSocket disconnect");
                 } else if (type == WS_EVT_DATA) {
                 String msg = String((char*)data).substring(0, len);
-                Serial.println("WebSocket msg: " + msg);
-
+                //Serial.println("WebSocket msg: " + msg);
                     JsonDocument doc;
-                DeserializationError error = deserializeJson(doc, msg);
-                if (error) {
-                client->text("{\"type\":\"error\",\"data\":\"invalid_json\"}");
-                return;
-                }
+                  DeserializationError error = deserializeJson(doc, msg);
+                  if (error) {
+                    client->text("{\"type\":\"error\",\"data\":\"invalid_json\"}");
+                    return;
+                  }
 
-                String type = doc["type"].as<String>();
-                if (type == "dccexraw") {
-                String raw = doc["data"]["raw"].as<String>();
-                //Serial.println("DCCEX RAW: " + raw);
-
-                server->textAll("{\"type\":\"ack\",\"data\":\""+ raw +"\"}");
-                dccParseRaw(raw);
-
+                  String type = doc["type"].as<String>();
+                  if (type == "dccexraw") {
+                    String raw = doc["data"]["raw"].as<String>();
+                    //Serial.println("DCCEX RAW: " + raw);
+                    server->textAll("{\"type\":\"ack\",\"data\":\""+ raw +"\"}");
+                    dccParseRaw(raw);
                 
               } else {
                 server->textAll("{\"type\":\"error\",\"data\":\"unknown_command\"}");

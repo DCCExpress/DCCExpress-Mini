@@ -362,9 +362,9 @@ export class LocoPanel extends HTMLElement {
                 </div>
 
                 <div class="control-group">
+                    <button id="btnPower" class="btn btn-primary flex-fill py-3">⚡</button>
                     <button id="btnRoutes" class="btn btn-warning flex-fill py-3">🔀</button>
                     <button id="btnTurnouts" class="btn btn-success flex-fill py-3">🔌</button>
-                    <button id="btnPower" class="btn btn-primary flex-fill py-3">⚡</button>
                     <button id="btnEmergency" class="btn btn-danger flex-fill py-3">🛑</button>
                 </div>
 

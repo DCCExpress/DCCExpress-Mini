@@ -275,9 +275,9 @@
                 </div>
 
                 <div class="control-group">
+                    <button id="btnPower" class="btn btn-primary flex-fill py-3">\u26A1</button>
                     <button id="btnRoutes" class="btn btn-warning flex-fill py-3">\u{1F500}</button>
                     <button id="btnTurnouts" class="btn btn-success flex-fill py-3">\u{1F50C}</button>
-                    <button id="btnPower" class="btn btn-primary flex-fill py-3">\u26A1</button>
                     <button id="btnEmergency" class="btn btn-danger flex-fill py-3">\u{1F6D1}</button>
                 </div>
 
