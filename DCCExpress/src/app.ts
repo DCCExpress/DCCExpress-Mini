@@ -8,23 +8,31 @@ console.log(Api)
 
 export class App {
     cp: any;
-
+    static instance: App | null
     config: iConfig = {
         startup: {
             power: "<1 MAIN>",
-            init: "<s>\n<T 1 DCC 1>" 
+            init: "<s>\n<T 1 DCC 1>"
         }
     };
-    
+
+    onMessage(msg: string) {
+
+    }
 
     constructor() {
-
+        App.instance = this
         this.cp = document.createElement('loco-panel') as LocoPanel
         document.body.appendChild(this.cp)
 
         wsClient.onOpen = () => {
+            //wsClient.sendRaw("<s>")
+
             wsClient.sendRaw(this.config.startup.power)
             wsClient.sendRaw(this.config.startup.init)
+            setTimeout(() => {
+                this.cp.init()
+            }, 100)
         }
 
         wsClient.onClosed = () => {
@@ -68,9 +76,9 @@ export class App {
             .catch((err) => console.error("Hiba a config.json beolvasásakor:", err))
             .finally(() => {
                 wsClient.connect()
+
             });
 
-            this.cp.init()
 
         // fetch("turnouts.json").then((res) => {
         //     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -78,7 +86,7 @@ export class App {
 
         // }).then((json) => {
         //     this.turnouts = json
-            
+
         // }).catch((err) => {
 
         // });      

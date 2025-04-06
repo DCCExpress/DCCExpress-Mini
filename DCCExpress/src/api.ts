@@ -1,37 +1,61 @@
+import { App } from "./app";
 import { ApiCommands, DccDirections, iData, iTurnout } from "./dcc";
 import { iDccRaw, wsClient } from "./ws";
 
+declare const Android: {
+    connect(ip: string, port: number): void;
+    send(data: string): void;
+    disconnect(): void;
+};
+
+export function onTcpMessage(msg: string) {
+    if (App.instance) {
+        App.instance.cp.processMessage(msg)
+    }
+}
+
 export class Api {
 
-    private static format(raw: string) : iData {
-        return {type: ApiCommands.dccexraw, data: {raw: raw} as iDccRaw} as iData
+    static tcpSend(raw: string) {
+        Android.send(raw);
+    }
+
+    static tcpConnect(ip: string, port: number) {
+        Android.connect(ip, port);
+    }
+    static tcpDisconnect() {
+        Android.disconnect();
+    }
+
+    static sendRaw(raw: string) {
+        wsClient.send({ type: ApiCommands.dccexraw, data: { raw: raw } as iDccRaw } as iData)
     }
     static setLoco(address: number, speed: number, direction: DccDirections) {
-        wsClient.send(Api.format(`<t ${address} ${speed} ${direction}>`))
+        Api.sendRaw(`<t ${address} ${speed} ${direction}>`)
     }
 
     static getLocoInfo(address: number) {
-        wsClient.send(Api.format(`<t ${address}>`))
+        Api.sendRaw(`<t ${address}>`)
     }
 
     static setLocoFunction(address: number, fn: number, on: boolean) {
-        wsClient.send(Api.format(`<F ${address} ${fn} ${on ? 1 : 0}>`))
+        Api.sendRaw(`<F ${address} ${fn} ${on ? 1 : 0}>`)
     }
-    
+
     static emergencyStop() {
-        wsClient.send(Api.format(`<!>`))
+        Api.sendRaw(`<!>`)
     }
-    
+
     static getSupportedLocos() {
-        wsClient.send(Api.format(`<c>`))
+        Api.sendRaw(`<c>`)
     }
 
     static setTurnout(to: iTurnout) {
-            wsClient.send(Api.format(`<T ${to.address} ${to.isClosed ? 0 : 1}>`))
+        Api.sendRaw(`<T ${to.address} ${to.isClosed ? 0 : 1}>`)
     }
 
     static getAllTurnout() {
-        wsClient.send(Api.format('<T>'))
+        Api.sendRaw('<T>')
     }
 
 }

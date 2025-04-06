@@ -11,48 +11,48 @@ enum Colors {
 
 export class LocoPanel extends HTMLElement {
 
-//     getSvgTurnoutClosed(id: number, isLeft: boolean) {
-//         return `
-//  <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
-//    <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
-//      <path
-//         id="rect2"
-//         style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583"
-//         d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
-//         />
-//      <rect
-//         style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
-//         id="rect1"
-//         width="1.8358474"
-//         height="10.451042"
-//         x="4.121172"
-//         y="0.1322915" />
-//    </g>
-//  </svg>
-//  `
-//      }
+    //     getSvgTurnoutClosed(id: number, isLeft: boolean) {
+    //         return `
+    //  <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
+    //    <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
+    //      <path
+    //         id="rect2"
+    //         style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583"
+    //         d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
+    //         />
+    //      <rect
+    //         style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
+    //         id="rect1"
+    //         width="1.8358474"
+    //         height="10.451042"
+    //         x="4.121172"
+    //         y="0.1322915" />
+    //    </g>
+    //  </svg>
+    //  `
+    //      }
 
-//      getSvgTurnoutThrown(id: number, isLeft: boolean) {
-//         return `
-//  <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
-//    <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
-//      <rect
-//         style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
-//         id="rect1"
-//         width="1.8358474"
-//         height="10.451042"
-//         x="4.121172"
-//         y="0.1322915" />
-//      <path
-//         id="rect2"
-//         style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583"
-//         d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
-//         />
+    //      getSvgTurnoutThrown(id: number, isLeft: boolean) {
+    //         return `
+    //  <svg width="48" height="48" viewBox="0 0 12 12" id="turnout${id}" xmlns="http://www.w3.org/2000/svg">
+    //    <g ${isLeft ? 'transform="scale(-1 1)  translate(-12 0)"' : ''} >
+    //      <rect
+    //         style="fill:#4d4d4d;stroke:#000000;stroke-width:0.264583;stroke-dasharray:none"
+    //         id="rect1"
+    //         width="1.8358474"
+    //         height="10.451042"
+    //         x="4.121172"
+    //         y="0.1322915" />
+    //      <path
+    //         id="rect2"
+    //         style="fill:#f2f2f2;stroke:#000000;stroke-width:0.264583"
+    //         d="m 8.4106304,0.1322915 h 2.1727026 l -4.6263137,6.0942533 0,4.3567892 H 4.121172 l 0,-4.8354783 z"
+    //         />
 
-//    </g>
-//  </svg>
-//  `
-//      }     
+    //    </g>
+    //  </svg>
+    //  `
+    //      }     
     locomotives: iLocomotive[] = [];
     locoImage: HTMLImageElement;
     btnReverse: HTMLButtonElement;
@@ -499,7 +499,7 @@ export class LocoPanel extends HTMLElement {
 
         this.modal = shadow.getElementById("modal") as HTMLDivElement;
         this.modal.onclick = (e) => {
-            if(e.target == this.modal) {
+            if (e.target == this.modal) {
                 this.closeModal()
             }
         }
@@ -563,13 +563,18 @@ export class LocoPanel extends HTMLElement {
         try {
             const response = await fetch(`locos.json`);
             const locos = await response.json();
+            let t = 0
             this.locomotives = locos.sort((a: iLocomotive, b: iLocomotive) => a.address - b.address);
             //this.render();
             if (this.locomotives.length > 0) {
-                this.locomotives.forEach((l) => {
+                this.locomotives.forEach((l, i) => {
                     l.speed = 0
                     l.direction = DccDirections.forward
-                    Api.getLocoInfo(l.address)
+                    // setTimeout(() => {
+                    // Api.getLocoInfo(l.address)
+                    // }, i * 10)
+                    //Api.getLocoInfo(l.address)
+
                 })
 
                 const i = parseInt(window.localStorage.getItem("controlPanelSelectedLocoIndex")!) || 0;
@@ -704,21 +709,20 @@ export class LocoPanel extends HTMLElement {
             const tItem = document.createElement("div");
             tItem.classList.add("turnout-item");
 
-            const elem = turnout.isLeft ? document.createElement("turnout-left-element") as Turnout:  document.createElement("turnout-right-element") as Turnout
+            const elem = turnout.isLeft ? document.createElement("turnout-left-element") as Turnout : document.createElement("turnout-right-element") as Turnout
             elem.id = `turnout-${turnout.address}`
             tItem.appendChild(elem)
             elem.addEventListener("click", () => {
                 const to = this.turnouts.find((t) => {
                     return turnout.address == t.address
                 })
-                if(to) 
-                    {
+                if (to) {
                     to.isClosed = !to.isClosed
                     Api.setTurnout(to)
                     const elem = this.shadowRoot!.getElementById(`turnout-${to.address}`) as Turnout;
                     if (elem) {
                         elem.isClosed = to.isClosed != to.isInverted
-                    }                    
+                    }
                 }
             })
             const title = document.createElement("div")
@@ -760,6 +764,9 @@ export class LocoPanel extends HTMLElement {
     }
     public set currentLoco(v: iLocomotive) {
         this._currentLoco = v;
+        if (v) {
+            Api.getLocoInfo(v.address)
+        }
         this.renderLocoFunctions()
     }
 
@@ -843,9 +850,9 @@ export class LocoPanel extends HTMLElement {
     public processMessage(msg: iData) {
 
         if (msg.type == ApiCommands.rawInfo) {
-            
+
             const raw = (msg.data as iDccRaw).raw
-            
+
             for (var i = 0; i < raw.length; i++) {
                 var c = raw[i];
                 if (c == ">") {
